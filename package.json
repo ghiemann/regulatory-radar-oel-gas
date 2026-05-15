@@ -1,0 +1,23 @@
+{
+  "name": "regulatory-radar-oel-gas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build && node scripts/serve-dist.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/fix-dist-paths.mjs && node scripts/create-simple-standalone.mjs",
+    "preview": "node scripts/serve-dist.mjs"
+  },
+  "dependencies": {
+    "vite": "^7.2.7",
+    "typescript": "^5.9.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "lucide-react": "^0.561.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.2",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
+  }
+}
