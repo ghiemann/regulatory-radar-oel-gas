@@ -1,0 +1,50 @@
+[
+  {
+    "id": "erdgas",
+    "label": "Erdgas",
+    "weight": 18,
+    "keywords": ["erdgas", "gasversorgung", "lng", "gasnetz", "gaspreis", "gasspeicher"]
+  },
+  {
+    "id": "erdoel",
+    "label": "Erdoel",
+    "weight": 16,
+    "keywords": ["erdoel", "oel", "mineraloel", "raffinerie", "rohoel", "kraftstoff"]
+  },
+  {
+    "id": "methan",
+    "label": "Methan",
+    "weight": 18,
+    "keywords": ["methan", "methanemission", "leckage", "emissionsmessung", "flaring"]
+  },
+  {
+    "id": "infrastruktur",
+    "label": "Infrastruktur",
+    "weight": 15,
+    "keywords": ["pipeline", "leitungen", "speicher", "terminal", "netzanschluss", "transportinfrastruktur"]
+  },
+  {
+    "id": "foerderung",
+    "label": "Foerderung",
+    "weight": 17,
+    "keywords": ["foerderung", "bohrung", "lagerstaette", "exploration", "aufsuchung", "fracking"]
+  },
+  {
+    "id": "bergrecht",
+    "label": "Bergrecht",
+    "weight": 20,
+    "keywords": ["bergrecht", "bbergg", "bergbau", "bergberechtigung", "betriebsplan", "bergbehoerde"]
+  },
+  {
+    "id": "genehmigung",
+    "label": "Genehmigung / Planfeststellung",
+    "weight": 14,
+    "keywords": ["genehmigung", "planfeststellung", "uvp", "zulassung", "raumordnung", "anhoerung"]
+  },
+  {
+    "id": "umwelt-klima",
+    "label": "Umwelt/Klima",
+    "weight": 10,
+    "keywords": ["klimaschutz", "emissionen", "co2", "umweltauflagen", "wasserrecht", "naturschutz"]
+  }
+]
