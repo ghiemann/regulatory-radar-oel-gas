@@ -64,7 +64,7 @@ export function App() {
   }, []);
 
   const documents = useMemo(
-    () => rawDocuments.map(enrichDocument).sort((a, b) => b.relevanceScore - a.relevanceScore),
+    () => rawDocuments.map(enrichDocument).filter((document) => document.tags.length > 0).sort((a, b) => b.relevanceScore - a.relevanceScore),
     [rawDocuments]
   );
 
