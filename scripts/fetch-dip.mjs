@@ -14,6 +14,10 @@ await loadDotEnv();
 const apiKey = process.env.DIP_API_KEY;
 const lookbackDays = Number(process.env.DIP_LOOKBACK_DAYS ?? 45);
 const maxDocuments = Number(process.env.DIP_MAX_DOCUMENTS ?? 60);
+const scanLimit = Number(process.env.DIP_SCAN_LIMIT ?? 1200);
+const wahlperiode = process.env.DIP_WAHLPERIODE ?? "21";
+const legacyStartDate = process.env.DIP_LEGACY_START_DATE ?? "2025-03-25";
+const useLegacyMode = process.env.DIP_LEGACY_MODE !== "false";
 const startDate = process.env.DIP_START_DATE ?? toDateOnly(daysAgo(lookbackDays));
 
 const relevanceTerms = {
@@ -47,7 +51,29 @@ const relevanceTerms = {
     "mineraloel",
     "raffinerie",
     "oelraffinerie",
-    "oel und gas"
+    "oel und gas",
+    "ccs",
+    "carbon capture and storage",
+    "co2 speicher",
+    "co2 speicherung",
+    "co2-speicher",
+    "co2-speicherung",
+    "kohlenstoffspeicher",
+    "kohlenstoffspeicherung",
+    "kohlenstofftransport",
+    "co2 transport",
+    "co2 pipeline",
+    "negativemission",
+    "negativemissionen",
+    "negative emission",
+    "negative emissionen",
+    "kohlenwasserstoff",
+    "kohlenwasserstoffe",
+    "meeresschutzgebiet",
+    "meeresschutzgebiete",
+    "unitarisierungsabkommen",
+    "unitisierung",
+    "niederlande"
   ],
   medium: [
     "bergrecht",
@@ -66,7 +92,21 @@ const relevanceTerms = {
     "speicheranlage",
     "speicher",
     "terminal",
-    "wassergefaehrdend"
+    "wassergefaehrdend",
+    "carbon management",
+    "ccu",
+    "co2 lagerstaette",
+    "co2 leitung",
+    "co2 transportnetz",
+    "kohlendioxid",
+    "kohlendioxidspeicherung",
+    "kohlenstoffabscheidung",
+    "kohlenstofftransport",
+    "offshore foerderung",
+    "meeresschutz",
+    "grenzueberschreitende lagerstaette",
+    "lagerstaettenabkommen",
+    "kohlenwasserstoffvorkommen"
   ],
   weak: [
     "emission",
@@ -87,8 +127,6 @@ const falsePositiveTerms = [
   "batteriespeicher",
   "waermespeicher",
   "datenspeicher",
-  "speicherung von co2",
-  "co2-speicherung",
   "flughafen",
   "containerterminal",
   "personennahverkehr",
@@ -179,6 +217,22 @@ if (process.argv.includes("--test-filters")) {
       title: "Bundesratsinitiative zur Umsetzung der EU-Methanverordnung im Energiesektor",
       summaryShort: "Neue Berichtspflichten und Messvorgaben fuer Methanemissionen in Gasinfrastruktur.",
       expected: true
+    },
+    {
+      title: "Carbon Capture and Storage: Aufbau einer CO2-Transportinfrastruktur und Kohlenstoffspeicher",
+      expected: true
+    },
+    {
+      title: "Negativemissionen durch CCS und CO2-Speicherung rechtssicher ermoeglichen",
+      expected: true
+    },
+    {
+      title: "Verbot der Foerderung von Kohlenwasserstoffen in Meeresschutzgebieten",
+      expected: true
+    },
+    {
+      title: "Unitarisierungsabkommen mit den Niederlanden ueber grenzueberschreitende Kohlenwasserstoffvorkommen",
+      expected: true
     }
   ];
 
@@ -247,13 +301,18 @@ await writeJson(OUTPUT_PATH, normalizedDocuments);
 console.log(`DIP-Import abgeschlossen: ${normalizedDocuments.length} Dokumente nach ${relativeToProject(OUTPUT_PATH)} geschrieben.`);
 
 async function fetchDipDocuments() {
+  const params = useLegacyMode
+    ? {
+        "f.wahlperiode": wahlperiode,
+        "f.datum.start": legacyStartDate
+      }
+    : {
+        "f.aktualisiert.start": `${startDate}T00:00:00+02:00`
+      };
+
   const [vorgaenge, drucksachen] = await Promise.all([
-    fetchAllPages("vorgang", {
-      "f.aktualisiert.start": `${startDate}T00:00:00+02:00`
-    }),
-    fetchAllPages("drucksache", {
-      "f.aktualisiert.start": `${startDate}T00:00:00+02:00`
-    })
+    fetchAllPages("vorgang", params),
+    fetchAllPages("drucksache", params)
   ]);
 
   return dedupeById([...vorgaenge, ...drucksachen], (document) => `${document.typ ?? "dip"}-${document.id}`);
@@ -269,7 +328,7 @@ async function fetchAllPages(resource, params) {
     documents.push(...(Array.isArray(page.documents) ? page.documents : []));
     previousCursor = cursor;
     cursor = page.cursor ?? "";
-  } while (cursor && cursor !== previousCursor && documents.length < maxDocuments * 4);
+  } while (cursor && cursor !== previousCursor && documents.length < scanLimit);
 
   return documents;
 }
