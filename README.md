@@ -19,6 +19,8 @@ npm run fetch:dip
 Der API-Key wird nicht ins Repository geschrieben. Lokal wird er als `DIP_API_KEY` gesetzt, in GitHub als Repository Secret mit demselben Namen.
 Alternativ kann lokal eine `.env`-Datei nach dem Muster aus `.env.example` angelegt werden.
 
+Standardmaessig laeuft der DIP-Import im Legacy-Modus fuer die 21. Wahlperiode ab dem 25.03.2025. Dadurch werden nicht nur taegliche neue Dokumente, sondern auch bereits laufende oder abgeschlossene Verfahren aus der aktuellen Legislaturperiode beruecksichtigt. Die Ausgabe bleibt ueber `DIP_MAX_DOCUMENTS` begrenzt.
+
 Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werden:
 
 ```bash
