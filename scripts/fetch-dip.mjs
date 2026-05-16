@@ -16,33 +16,106 @@ const lookbackDays = Number(process.env.DIP_LOOKBACK_DAYS ?? 45);
 const maxDocuments = Number(process.env.DIP_MAX_DOCUMENTS ?? 60);
 const startDate = process.env.DIP_START_DATE ?? toDateOnly(daysAgo(lookbackDays));
 
-const relevanceKeywords = [
-  "erdgas",
-  "gasversorgung",
-  "lng",
-  "gasnetz",
-  "gasspeicher",
-  "pipeline",
-  "speicher",
-  "terminal",
-  "methan",
-  "methanemission",
-  "emissionen",
-  "raffinerie",
-  "mineraloel",
-  "oel",
-  "rohoel",
-  "bergrecht",
-  "bergbau",
-  "bohrung",
-  "foerderung",
-  "betriebsplan",
-  "genehmigung",
-  "planfeststellung",
-  "energieinfrastruktur",
-  "energiewirtschaft",
-  "wassergefaehrdend"
+const relevanceTerms = {
+  strong: [
+    "erdgas",
+    "gasversorgung",
+    "gasinfrastruktur",
+    "gasnetz",
+    "gasspeicher",
+    "gasleitung",
+    "lng",
+    "methan",
+    "methanemission",
+    "pipeline",
+    "rohoel",
+    "erdoel",
+    "mineraloel",
+    "raffinerie",
+    "oelraffinerie",
+    "oel und gas"
+  ],
+  medium: [
+    "bergrecht",
+    "bergbau",
+    "bohrung",
+    "bohrloch",
+    "foerderung",
+    "foerderstandort",
+    "betriebsplan",
+    "energieinfrastruktur",
+    "energiewirtschaft",
+    "speicheranlage",
+    "speicher",
+    "terminal",
+    "wassergefaehrdend"
+  ],
+  weak: [
+    "emission",
+    "emissionen",
+    "industrieemission",
+    "genehmigung",
+    "genehmigungsverfahren",
+    "planfeststellung",
+    "meldepflicht",
+    "meldepflichten",
+    "transportinfrastruktur",
+    "netzanschluss"
+  ]
+};
+
+const falsePositiveTerms = [
+  "stromspeicher",
+  "batteriespeicher",
+  "waermespeicher",
+  "datenspeicher",
+  "speicherung von co2",
+  "co2-speicherung",
+  "flughafen",
+  "containerterminal",
+  "personennahverkehr",
+  "schienenverkehr",
+  "gesundheitswesen",
+  "krankenhaus",
+  "rentenversicherung",
+  "kindertagesstaette",
+  "schule",
+  "hochschule",
+  "wohnungslosigkeit",
+  "wohnungsbau",
+  "waermepumpe",
+  "gebaeudesektor",
+  "elektromobilitaet",
+  "ladeinfrastruktur"
 ];
+
+if (process.argv.includes("--analyze-current")) {
+  const currentDocuments = JSON.parse(await readFile(OUTPUT_PATH, "utf8"));
+  const evaluatedDocuments = currentDocuments.map(addImportQuality);
+  const kept = evaluatedDocuments.filter((document) => document.importQuality.isRelevant);
+  const dropped = evaluatedDocuments.filter((document) => !document.importQuality.isRelevant);
+
+  console.log(`Importanalyse fuer ${relativeToProject(OUTPUT_PATH)}`);
+  console.log(`Behalten: ${kept.length}`);
+  console.log(`Herausfiltern: ${dropped.length}`);
+
+  for (const document of evaluatedDocuments) {
+    const quality = document.importQuality;
+    const decision = quality.isRelevant ? "KEEP" : "DROP";
+    const matches = [
+      quality.matchedTerms.strong.length > 0 ? `strong=${quality.matchedTerms.strong.join(",")}` : "",
+      quality.matchedTerms.medium.length > 0 ? `medium=${quality.matchedTerms.medium.join(",")}` : "",
+      quality.matchedTerms.weak.length > 0 ? `weak=${quality.matchedTerms.weak.join(",")}` : "",
+      quality.matchedTerms.exclusions.length > 0 ? `exclusions=${quality.matchedTerms.exclusions.join(",")}` : ""
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    console.log(`${decision} score=${quality.score} ${document.id}: ${document.title}${matches ? ` (${matches})` : ""}`);
+  }
+
+  process.exit(0);
+}
 
 if (!apiKey) {
   console.error(
@@ -62,7 +135,8 @@ const dipDocuments = await fetchDipDocuments();
 const normalizedDocuments = dipDocuments
   .map(normalizeDipDocument)
   .filter(Boolean)
-  .filter(isRelevantDocument)
+  .map(addImportQuality)
+  .filter((document) => document.importQuality.isRelevant)
   .sort((a, b) => new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime())
   .slice(0, maxDocuments);
 
@@ -183,18 +257,81 @@ function normalizeDipDocument(document) {
 }
 
 function isRelevantDocument(document) {
-  const haystack = [
-    document.title,
-    document.documentType,
-    document.status,
-    document.summaryShort,
-    document.summaryLong,
-    document.source
-  ]
-    .join(" ")
-    .toLocaleLowerCase("de-DE");
+  return evaluateImportQuality(document).isRelevant;
+}
 
-  return relevanceKeywords.some((keyword) => haystack.includes(keyword));
+function addImportQuality(document) {
+  return {
+    ...document,
+    importQuality: evaluateImportQuality(document)
+  };
+}
+
+function evaluateImportQuality(document) {
+  const haystack = normalizeForSearch(
+    [
+      document.title,
+      document.documentType,
+      document.status,
+      document.summaryShort,
+      document.summaryLong,
+      document.source
+    ].join(" ")
+  );
+
+  const strongMatches = findTermMatches(haystack, relevanceTerms.strong);
+  const mediumMatches = findTermMatches(haystack, relevanceTerms.medium);
+  const weakMatches = findTermMatches(haystack, relevanceTerms.weak);
+  const exclusionMatches = findTermMatches(haystack, falsePositiveTerms);
+
+  const strongScore = strongMatches.length * 4;
+  const mediumScore = mediumMatches.length * 2;
+  const weakScore = Math.min(weakMatches.length, 3);
+  const penalty = exclusionMatches.length * 3;
+  const score = strongScore + mediumScore + weakScore - penalty;
+
+  const hasCoreSignal = strongMatches.length > 0;
+  const hasCompoundMediumSignal = mediumMatches.length >= 2;
+  const hasOnlyWeakSignal = strongMatches.length === 0 && mediumMatches.length === 0 && weakMatches.length > 0;
+  const blockedAsFalsePositive = exclusionMatches.length > 0 && !hasCoreSignal;
+
+  return {
+    isRelevant: !blockedAsFalsePositive && !hasOnlyWeakSignal && score >= 4 && (hasCoreSignal || hasCompoundMediumSignal),
+    score,
+    matchedTerms: {
+      strong: strongMatches,
+      medium: mediumMatches,
+      weak: weakMatches,
+      exclusions: exclusionMatches
+    }
+  };
+}
+
+function findTermMatches(haystack, terms) {
+  return terms.filter((term) => includesSearchTerm(haystack, term));
+}
+
+function includesSearchTerm(haystack, term) {
+  const normalizedTerm = normalizeForSearch(term);
+  if (normalizedTerm.length >= 7 && haystack.includes(normalizedTerm)) return true;
+
+  const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
+  return pattern.test(haystack);
+}
+
+function normalizeForSearch(value) {
+  return cleanText(value)
+    .toLocaleLowerCase("de-DE")
+    .replaceAll("ä", "ae")
+    .replaceAll("ö", "oe")
+    .replaceAll("ü", "ue")
+    .replaceAll("ß", "ss")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function getDocumentType(document) {
