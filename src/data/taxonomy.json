@@ -46,5 +46,29 @@
     "label": "Umwelt/Klima",
     "weight": 10,
     "keywords": ["klimaschutz", "emissionen", "co2", "umweltauflagen", "wasserrecht", "naturschutz"]
+  },
+  {
+    "id": "ccs",
+    "label": "CCS / CO2-Speicherung",
+    "weight": 19,
+    "keywords": ["ccs", "carbon capture and storage", "carbon management", "co2 speicher", "co2 speicherung", "co2-speicher", "co2-speicherung", "kohlenstoffspeicher", "kohlenstoffspeicherung", "kohlendioxidspeicherung", "kohlenstoffabscheidung", "negativemission", "negativemissionen", "negative emissionen"]
+  },
+  {
+    "id": "co2-transport",
+    "label": "CO2-Transport",
+    "weight": 16,
+    "keywords": ["co2 transport", "co2 pipeline", "co2 leitung", "co2 transportnetz", "kohlenstofftransport", "kohlendioxidtransport"]
+  },
+  {
+    "id": "meeresschutz",
+    "label": "Meeresschutz / Kohlenwasserstoffe",
+    "weight": 18,
+    "keywords": ["kohlenwasserstoff", "kohlenwasserstoffe", "meeresschutzgebiet", "meeresschutzgebiete", "meeresschutz", "offshore foerderung"]
+  },
+  {
+    "id": "unitisierung",
+    "label": "Unitisierung / Niederlande",
+    "weight": 17,
+    "keywords": ["unitarisierungsabkommen", "unitisierung", "niederlande", "grenzueberschreitende lagerstaette", "lagerstaettenabkommen", "kohlenwasserstoffvorkommen"]
   }
 ]
