@@ -54,7 +54,11 @@ const relevanceTerms = {
     "bergbau",
     "bohrung",
     "bohrloch",
-    "foerderung",
+    "erdgasfoerderung",
+    "erdoelfoerderung",
+    "gasfoerderung",
+    "oelfoerderung",
+    "rohstofffoerderung",
     "foerderstandort",
     "betriebsplan",
     "energieinfrastruktur",
@@ -100,7 +104,17 @@ const falsePositiveTerms = [
   "waermepumpe",
   "gebaeudesektor",
   "elektromobilitaet",
-  "ladeinfrastruktur"
+  "ladeinfrastruktur",
+  "tourismus",
+  "tourist",
+  "anwalt",
+  "anwaltsnotariat",
+  "notariat",
+  "notar",
+  "schuldnerberatung",
+  "verbraucher",
+  "informationsfreiheit",
+  "open data"
 ];
 
 if (process.argv.includes("--analyze-current")) {
@@ -147,6 +161,14 @@ if (process.argv.includes("--test-filters")) {
     },
     {
       title: "Finanzierungsformen der rechtsextremen Szene seit 2024",
+      expected: false
+    },
+    {
+      title: "Foerderung touristischer Infrastruktur in Mecklenburg-Vorpommern",
+      expected: false
+    },
+    {
+      title: "Entwurf eines Gesetzes zur Foerderung und Modernisierung des Anwaltsnotariats",
       expected: false
     },
     {
