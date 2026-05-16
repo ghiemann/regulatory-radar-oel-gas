@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main", "master"]
+  schedule:
+    - cron: "15 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,6 +19,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DIP_API_KEY: ${{ secrets.DIP_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +33,13 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Fetch DIP data
+        if: ${{ env.DIP_API_KEY != '' }}
+        run: npm run fetch:dip
+        env:
+          DIP_LOOKBACK_DAYS: 45
+          DIP_MAX_DOCUMENTS: 60
 
       - name: Build
         run: npm run build
