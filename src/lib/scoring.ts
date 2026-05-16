@@ -54,24 +54,46 @@ export function isNewToday(lastActivityDate: string, now = new Date()): boolean 
 }
 
 function findTaxonomyMatches(document: RegulatoryDocument) {
-  const haystack = [
+  const haystack = normalizeForSearch([
     document.title,
     document.documentType,
     document.status,
     document.summaryShort,
     document.summaryLong,
     document.source
-  ]
-    .join(" ")
-    .toLocaleLowerCase("de-DE");
+  ].join(" "));
 
   return categories
     .map((category) => {
-      const count = category.keywords.filter((keyword) => haystack.includes(keyword.toLocaleLowerCase("de-DE"))).length;
+      const count = category.keywords.filter((keyword) => includesSearchTerm(haystack, keyword)).length;
       return { category, count };
     })
     .filter((match) => match.count > 0)
     .sort((a, b) => b.category.weight + b.count - (a.category.weight + a.count));
+}
+
+function includesSearchTerm(haystack: string, term: string): boolean {
+  const normalizedTerm = normalizeForSearch(term);
+  const allowsCompoundMatch = normalizedTerm.length >= 7 && !normalizedTerm.includes(" ");
+  if (allowsCompoundMatch && haystack.includes(normalizedTerm)) return true;
+
+  const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
+  return pattern.test(haystack);
+}
+
+function normalizeForSearch(value: string): string {
+  return value
+    .toLocaleLowerCase("de-DE")
+    .replaceAll("ä", "ae")
+    .replaceAll("ö", "oe")
+    .replaceAll("ü", "ue")
+    .replaceAll("ß", "ss")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function getRecencyBoost(lastActivityDate: string): number {
