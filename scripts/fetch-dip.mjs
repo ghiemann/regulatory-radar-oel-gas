@@ -25,11 +25,25 @@ const relevanceTerms = {
     "gasspeicher",
     "gasleitung",
     "lng",
+    "gas und wasserstoff",
+    "gas und wasserstoff binnenmarktpaket",
+    "gasbinnenmarkt",
     "methan",
     "methanemission",
     "pipeline",
     "rohoel",
     "erdoel",
+    "oelfoerderung",
+    "oelversorgung",
+    "oelpreis",
+    "oelmarkt",
+    "oelindustrie",
+    "oelkonzern",
+    "oelunternehmen",
+    "oelleitung",
+    "oelpipeline",
+    "oelterminal",
+    "heizoel",
     "mineraloel",
     "raffinerie",
     "oelraffinerie",
@@ -114,6 +128,66 @@ if (process.argv.includes("--analyze-current")) {
     console.log(`${decision} score=${quality.score} ${document.id}: ${document.title}${matches ? ` (${matches})` : ""}`);
   }
 
+  process.exit(0);
+}
+
+if (process.argv.includes("--test-filters")) {
+  const cases = [
+    {
+      title: "Gesetz ueber den Zugang zu Schuldnerberatungsdiensten fuer Verbraucher",
+      expected: false
+    },
+    {
+      title: "Moegliche finanzielle Risiken fuer Deutschland durch die Verschuldung Frankreichs und moegliche Belastungen fuer die Eurozone",
+      expected: false
+    },
+    {
+      title: "Zustaendigkeiten und Reformvorhaben der Bundesregierung im Bereich Informationsfreiheit und Open Data",
+      expected: false
+    },
+    {
+      title: "Finanzierungsformen der rechtsextremen Szene seit 2024",
+      expected: false
+    },
+    {
+      title: "Gesetz zur Aenderung des Energiewirtschaftsgesetzes und weiterer energierechtlicher Vorschriften zur Umsetzung des Europaeischen Gas- und Wasserstoff-Binnenmarktpakets",
+      expected: true
+    },
+    {
+      title: "Bundesratsinitiative zur Umsetzung der EU-Methanverordnung im Energiesektor",
+      summaryShort: "Neue Berichtspflichten und Messvorgaben fuer Methanemissionen in Gasinfrastruktur.",
+      expected: true
+    }
+  ];
+
+  let failures = 0;
+
+  for (const testCase of cases) {
+    const document = {
+      id: "test",
+      title: testCase.title,
+      source: "BT DIP",
+      sourceType: "Parlament",
+      level: "Bund",
+      documentType: "Test",
+      date: "2026-05-16",
+      lastActivityDate: "2026-05-16T00:00:00+02:00",
+      status: "Test",
+      url: "https://dip.bundestag.de/",
+      summaryShort: testCase.summaryShort ?? `${testCase.title}: BT DIP`,
+      summaryLong: testCase.summaryLong ?? "",
+      relevanceScore: 0,
+      relevanceReason: "",
+      tags: []
+    };
+    const quality = evaluateImportQuality(document);
+    const ok = quality.isRelevant === testCase.expected;
+    if (!ok) failures += 1;
+
+    console.log(`${ok ? "OK" : "FAIL"} expected=${testCase.expected ? "KEEP" : "DROP"} actual=${quality.isRelevant ? "KEEP" : "DROP"} score=${quality.score}: ${testCase.title}`);
+  }
+
+  if (failures > 0) process.exit(1);
   process.exit(0);
 }
 
@@ -294,9 +368,10 @@ function evaluateImportQuality(document) {
   const hasCompoundMediumSignal = mediumMatches.length >= 2;
   const hasOnlyWeakSignal = strongMatches.length === 0 && mediumMatches.length === 0 && weakMatches.length > 0;
   const blockedAsFalsePositive = exclusionMatches.length > 0 && !hasCoreSignal;
+  const hasEnoughEvidence = score >= 8 || (strongMatches.length >= 2 && score >= 6) || (strongMatches.length >= 1 && mediumMatches.length >= 1 && score >= 6);
 
   return {
-    isRelevant: !blockedAsFalsePositive && !hasOnlyWeakSignal && score >= 4 && (hasCoreSignal || hasCompoundMediumSignal),
+    isRelevant: !blockedAsFalsePositive && !hasOnlyWeakSignal && hasEnoughEvidence && (hasCoreSignal || hasCompoundMediumSignal),
     score,
     matchedTerms: {
       strong: strongMatches,
@@ -313,7 +388,8 @@ function findTermMatches(haystack, terms) {
 
 function includesSearchTerm(haystack, term) {
   const normalizedTerm = normalizeForSearch(term);
-  if (normalizedTerm.length >= 7 && haystack.includes(normalizedTerm)) return true;
+  const allowsCompoundMatch = normalizedTerm.length >= 7 && !normalizedTerm.includes(" ");
+  if (allowsCompoundMatch && haystack.includes(normalizedTerm)) return true;
 
   const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
