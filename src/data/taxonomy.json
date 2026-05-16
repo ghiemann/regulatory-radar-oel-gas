@@ -27,7 +27,7 @@
     "id": "foerderung",
     "label": "Foerderung",
     "weight": 17,
-    "keywords": ["foerderung", "bohrung", "lagerstaette", "exploration", "aufsuchung", "fracking"]
+    "keywords": ["erdgasfoerderung", "erdoelfoerderung", "gasfoerderung", "oelfoerderung", "rohstofffoerderung", "bohrung", "lagerstaette", "exploration", "aufsuchung", "fracking"]
   },
   {
     "id": "bergrecht",
