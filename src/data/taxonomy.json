@@ -9,7 +9,7 @@
     "id": "erdoel",
     "label": "Erdoel",
     "weight": 16,
-    "keywords": ["erdoel", "oel", "mineraloel", "raffinerie", "rohoel", "kraftstoff"]
+    "keywords": ["erdoel", "rohoel", "mineraloel", "raffinerie", "oelraffinerie", "oelfoerderung", "oelversorgung", "oelpipeline", "heizoel", "kraftstoff"]
   },
   {
     "id": "methan",
