@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build && node scripts/serve-dist.mjs",
+    "fetch:dip": "node scripts/fetch-dip.mjs",
     "build": "tsc --noEmit && vite build && node scripts/fix-dist-paths.mjs && node scripts/create-simple-standalone.mjs",
     "preview": "node scripts/serve-dist.mjs"
   },
