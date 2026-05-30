@@ -19,6 +19,7 @@ import type { Level, RegulatoryDocument, TaxonomyCategory } from "./types";
 
 type View = "dashboard" | "today";
 type SortKey = "score" | "date";
+const defaultSortKey: SortKey = "date";
 
 type Filters = {
   query: string;
@@ -41,7 +42,7 @@ const initialFilters: Filters = {
 export function App() {
   const [view, setView] = useState<View>("dashboard");
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const [sortKey, setSortKey] = useState<SortKey>("score");
+  const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey);
   const [rawDocuments, setRawDocuments] = useState<RegulatoryDocument[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -64,7 +65,11 @@ export function App() {
   }, []);
 
   const documents = useMemo(
-    () => rawDocuments.map(enrichDocument).filter((document) => document.tags.length > 0).sort((a, b) => b.relevanceScore - a.relevanceScore),
+    () =>
+      rawDocuments
+        .map(enrichDocument)
+        .filter((document) => document.tags.length > 0)
+        .sort((a, b) => new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime()),
     [rawDocuments]
   );
 
@@ -102,7 +107,7 @@ export function App() {
 
   function resetFilters() {
     setFilters(initialFilters);
-    setSortKey("score");
+    setSortKey(defaultSortKey);
   }
 
   if (loadError) {
