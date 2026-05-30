@@ -50,6 +50,12 @@ jobs:
           BMWE_START_DATE: "2025-03-25"
           BMWE_MAX_ITEMS: 60
 
+      - name: Fetch BMUKN data
+        run: npm run fetch:bmukn
+        env:
+          BMUKN_START_DATE: "2025-03-25"
+          BMUKN_MAX_ITEMS: 60
+
       - name: Fetch LBEG data
         run: npm run fetch:lbeg
         env:
