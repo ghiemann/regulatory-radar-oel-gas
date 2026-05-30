@@ -21,7 +21,7 @@
     "id": "infrastruktur",
     "label": "Infrastruktur",
     "weight": 15,
-    "keywords": ["pipeline", "leitungen", "speicher", "terminal", "netzanschluss", "transportinfrastruktur"]
+    "keywords": ["pipeline", "leitungen", "rohrleitung", "rohrleitungen", "leitungsbau", "leitungskataster", "energietransportleitung", "speicher", "terminal", "netzanschluss", "transportinfrastruktur"]
   },
   {
     "id": "foerderung",
@@ -57,7 +57,7 @@
     "id": "co2-transport",
     "label": "CO2-Transport",
     "weight": 16,
-    "keywords": ["co2 transport", "co2 pipeline", "co2 leitung", "co2 transportnetz", "kohlenstofftransport", "kohlendioxidtransport"]
+    "keywords": ["co2 transport", "co2 pipeline", "co2 leitung", "co2 transportnetz", "kohlendioxid leitung", "kohlendioxid transport", "kohlenstofftransport", "kohlendioxidtransport"]
   },
   {
     "id": "meeresschutz",
@@ -70,5 +70,17 @@
     "label": "Unitisierung / Niederlande",
     "weight": 17,
     "keywords": ["unitarisierungsabkommen", "unitisierung", "niederlande", "grenzueberschreitende lagerstaette", "lagerstaettenabkommen", "kohlenwasserstoffvorkommen"]
+  },
+  {
+    "id": "geothermie",
+    "label": "Geothermie",
+    "weight": 9,
+    "keywords": ["geothermie", "tiefengeothermie", "tiefe geothermie", "erdwaerme", "erdwarme", "thermalwasser", "geothermieprojekt", "erdwaermeprojekt"]
+  },
+  {
+    "id": "lithium",
+    "label": "Lithium",
+    "weight": 8,
+    "keywords": ["lithium", "lithiumgewinnung", "lithium vorkommen", "lithium aus thermalwasser"]
   }
 ]
