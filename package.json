@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "npm run build && node scripts/serve-dist.mjs",
     "fetch:dip": "node scripts/fetch-dip.mjs",
+    "fetch:bmwe": "node scripts/fetch-bmwe.mjs",
     "fetch:lbeg": "node scripts/fetch-lbeg.mjs",
     "fetch:nilas": "node scripts/fetch-nilas.mjs",
     "analyze:dip": "node scripts/fetch-dip.mjs --analyze-current",
     "validate:data": "node scripts/validate-data.mjs",
     "test:dip-filters": "node scripts/fetch-dip.mjs --test-filters",
+    "test:bmwe-filters": "node scripts/fetch-bmwe.mjs --test-filters",
     "test:lbeg-filters": "node scripts/fetch-lbeg.mjs --test-filters",
     "test:nilas-filters": "node scripts/fetch-nilas.mjs --test-filters",
     "build": "tsc --noEmit && vite build && node scripts/fix-dist-paths.mjs && node scripts/create-simple-standalone.mjs",

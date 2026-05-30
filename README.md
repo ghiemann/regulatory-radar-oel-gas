@@ -24,6 +24,14 @@ npm run fetch:lbeg
 
 Der LBEG-Importer liest Neuigkeiten und Presseinformationen, filtert auf Oel/Gas, Leitungsbau, CCS sowie niedriger priorisiert Geothermie und Lithium und blendet Veranstaltungs-/Jubilaeumsrauschen aus.
 
+BMWE-Meldungen brauchen ebenfalls keinen API-Key:
+
+```bash
+npm run fetch:bmwe
+```
+
+Der BMWE-Importer liest offizielle RSS-Feeds fuer Pressemitteilungen und Energie. Der Filter ist bewusst streng und nimmt nur klare Treffer zu Oel/Gas, LNG, Gaskraftwerken, Energieinfrastruktur, Wasserstoffleitungen/-netz, CCS/CO2-Transport und verwandten Themen auf. Bei 0 Treffern bleibt `documents.json` unveraendert.
+
 Ein erster NILAS-/Landtag-Niedersachsen-Importer fuer Drucksachen ist als vorsichtiger Prototyp vorhanden:
 
 ```bash
@@ -42,6 +50,7 @@ Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werd
 ```bash
 npm run validate:data
 npm run analyze:dip
+npm run test:bmwe-filters
 npm run test:lbeg-filters
 npm run test:nilas-filters
 ```
