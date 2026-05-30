@@ -9,7 +9,6 @@ import {
   Newspaper,
   RotateCcw,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
   X
 } from "lucide-react";
@@ -18,7 +17,7 @@ import taxonomy from "./data/taxonomy.json";
 import { enrichDocument, getScoreBucket, isNewToday } from "./lib/scoring";
 import type { Level, RegulatoryDocument, TaxonomyCategory } from "./types";
 
-type View = "briefing" | "today";
+type View = "briefing" | "today" | "high" | "review";
 type SortKey = "score" | "date";
 type SignalKind = "Gesetz" | "Vorgang" | "Meldung";
 const defaultSortKey: SortKey = "date";
@@ -95,11 +94,13 @@ export function App() {
   const todayCount = useMemo(() => documents.filter((document) => isNewToday(document.lastActivityDate)).length, [documents]);
   const highCount = useMemo(() => documents.filter((document) => document.relevanceScore >= 75).length, [documents]);
   const actionCount = useMemo(() => documents.filter(needsAction).length, [documents]);
-  const sourceCount = useMemo(() => new Set(documents.map((document) => getSourceLabel(document))).size, [documents]);
+  const reviewCount = useMemo(() => documents.filter(needsReview).length, [documents]);
 
   const filteredDocuments = useMemo(() => {
     return documents
       .filter((document) => (view === "today" ? isNewToday(document.lastActivityDate) : true))
+      .filter((document) => (view === "high" ? document.relevanceScore >= 75 : true))
+      .filter((document) => (view === "review" ? needsReview(document) : true))
       .filter((document) => matchesFilters(document, filters))
       .sort((a, b) => {
         if (sortKey === "date") {
@@ -113,7 +114,7 @@ export function App() {
   const briefingItems = documents
     .filter(needsAction)
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
-    .slice(0, 4);
+    .slice(0, 3);
   const activeFilterChips = getActiveFilterChips(filters, sortKey, updateFilters, resetSort);
 
   function updateFilters(nextFilters: Partial<Filters>) {
@@ -127,6 +128,11 @@ export function App() {
   function resetFilters() {
     setFilters(initialFilters);
     setSortKey(defaultSortKey);
+  }
+
+  function applyTopicFilter(nextFilters: Partial<Filters>) {
+    setView("briefing");
+    updateFilters(nextFilters);
   }
 
   if (loadError) {
@@ -163,6 +169,7 @@ export function App() {
         </div>
 
         <nav className="nav-stack" aria-label="Hauptansichten">
+          <span className="sidebar-section-title">Ansichten</span>
           <button className={view === "briefing" ? "nav-button active" : "nav-button"} onClick={() => setView("briefing")}>
             <Newspaper size={18} />
             Briefing
@@ -172,7 +179,58 @@ export function App() {
             Heute neu
             <span className="count">{todayCount}</span>
           </button>
+          <button className={view === "high" ? "nav-button active" : "nav-button"} onClick={() => setView("high")}>
+            <Gauge size={18} />
+            Hohe Relevanz
+            <span className="count">{highCount}</span>
+          </button>
+          <button className={view === "review" ? "nav-button active" : "nav-button"} onClick={() => setView("review")}>
+            <FileSearch size={18} />
+            Zur Prüfung
+            <span className="count">{reviewCount}</span>
+          </button>
         </nav>
+
+        <section className="quick-filter-section" aria-labelledby="quick-filter-title">
+          <h2 id="quick-filter-title" className="sidebar-section-title">Schnellfilter</h2>
+          <div className="quick-filter-grid">
+            <button
+              className={filters.tag === "CCS / CO2-Speicherung" ? "quick-filter active" : "quick-filter"}
+              type="button"
+              onClick={() => applyTopicFilter({ tag: filters.tag === "CCS / CO2-Speicherung" ? "Alle" : "CCS / CO2-Speicherung" })}
+            >
+              CCS / CO₂
+            </button>
+            <button
+              className={filters.tag === "Bergrecht" ? "quick-filter active" : "quick-filter"}
+              type="button"
+              onClick={() => applyTopicFilter({ tag: filters.tag === "Bergrecht" ? "Alle" : "Bergrecht" })}
+            >
+              Bergrecht
+            </button>
+            <button
+              className={filters.tag === "Genehmigung / Planfeststellung" ? "quick-filter active" : "quick-filter"}
+              type="button"
+              onClick={() => applyTopicFilter({ tag: filters.tag === "Genehmigung / Planfeststellung" ? "Alle" : "Genehmigung / Planfeststellung" })}
+            >
+              Genehmigung
+            </button>
+            <button
+              className={filters.tag === "Umwelt/Klima" ? "quick-filter active" : "quick-filter"}
+              type="button"
+              onClick={() => applyTopicFilter({ tag: filters.tag === "Umwelt/Klima" ? "Alle" : "Umwelt/Klima" })}
+            >
+              Umwelt
+            </button>
+            <button
+              className={filters.level === "Niedersachsen" ? "quick-filter active" : "quick-filter"}
+              type="button"
+              onClick={() => applyTopicFilter({ level: filters.level === "Niedersachsen" ? "Alle" : "Niedersachsen" })}
+            >
+              Niedersachsen
+            </button>
+          </div>
+        </section>
 
         <section className="briefing" aria-labelledby="briefing-title">
           <div className="briefing-head">
@@ -209,14 +267,14 @@ export function App() {
         <header className="briefing-top">
           <div className="briefing-title-block">
             <p className="context-line">Bund + Niedersachsen · Policy Intelligence für Öl & Gas</p>
-            <h1>{view === "today" ? "Heute neu" : "Morning Briefing"}</h1>
+            <h1>{getViewTitle(view)}</h1>
             <p className="header-copy">Schnelle Priorisierung: Was ist neu, warum ist es relevant und was sollte als Nächstes geprüft werden?</p>
           </div>
           <div className="briefing-cards" aria-label="Briefing-Kennzahlen">
             <Metric icon={<CalendarClock size={17} />} label="Heute neu" value={todayCount.toString()} helper="neue oder aktualisierte Signale" />
             <Metric icon={<Gauge size={17} />} label="Hohe Relevanz" value={highCount.toString()} helper="Score ab 75" />
             <Metric icon={<AlertTriangle size={17} />} label="Handlungsbedarf" value={actionCount.toString()} helper="heute relevant oder sehr hoher Score" />
-            <Metric icon={<ShieldCheck size={17} />} label="Quellen" value={sourceCount.toString()} helper="Monitoring-Abdeckung" />
+            <Metric icon={<FileSearch size={17} />} label="Zur Prüfung" value={reviewCount.toString()} helper="fachlich prüfen oder beobachten" />
           </div>
         </header>
 
@@ -526,6 +584,13 @@ function getActiveFilterChips(
   return chips;
 }
 
+function getViewTitle(view: View): string {
+  if (view === "today") return "Heute neu";
+  if (view === "high") return "Hohe Relevanz";
+  if (view === "review") return "Zur Prüfung";
+  return "Morning Briefing";
+}
+
 function matchesFilters(document: RegulatoryDocument, filters: Filters): boolean {
   const query = filters.query.trim().toLocaleLowerCase("de-DE");
   const queryHit =
@@ -573,6 +638,12 @@ function getSourceLabel(document: RegulatoryDocument): string {
 
 function needsAction(document: RegulatoryDocument): boolean {
   return document.relevanceScore >= 75 || (isNewToday(document.lastActivityDate) && document.relevanceScore >= 45);
+}
+
+function needsReview(document: RegulatoryDocument): boolean {
+  if (document.relevanceScore >= 45 && document.relevanceScore < 75) return true;
+  const status = document.status.toLocaleLowerCase("de-DE");
+  return ["laufend", "anhörung", "anhoerung", "entwurf", "verfahren", "beratung", "konsultation"].some((term) => status.includes(term));
 }
 
 function deriveImpact(document: RegulatoryDocument): string {
