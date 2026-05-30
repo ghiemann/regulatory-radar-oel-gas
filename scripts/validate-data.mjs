@@ -27,7 +27,10 @@ const blockedUrlPatterns = [
   /^https:\/\/www\.landtag-niedersachsen\.de\/drucksachen\/?$/i,
   /^https:\/\/www\.landtag-niedersachsen\.de\/plenarprotokolle\/?$/i,
   /^https:\/\/dip\.bundestag\.de\/?$/i,
-  /^https:\/\/www\.bundesrat\.de\/DE\/dokumente\/drucksachen\/drucksachen-node\.html$/i
+  /^https:\/\/www\.bundesrat\.de\/DE\/dokumente\/drucksachen\/drucksachen-node\.html$/i,
+  /^https:\/\/www\.bmuv\.de\/presse\/?$/i,
+  /^https:\/\/www\.bmukn\.de\/presse\/?$/i,
+  /^https:\/\/www\.bundeswirtschaftsministerium\.de\/?$/i
 ];
 
 const warnings = [];
