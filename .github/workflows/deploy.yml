@@ -44,6 +44,12 @@ jobs:
           DIP_SCAN_LIMIT: 1200
           DIP_MAX_DOCUMENTS: 80
 
+      - name: Fetch LBEG data
+        run: npm run fetch:lbeg
+        env:
+          LBEG_START_DATE: "2025-03-25"
+          LBEG_MAX_ARTICLES: 80
+
       - name: Build
         run: npm run build
 
