@@ -533,9 +533,24 @@ function getSource(document) {
 function getDipUrl(document) {
   if (document.fundstelle?.pdf_url) return document.fundstelle.pdf_url;
   if (document.pdf_url) return document.pdf_url;
-  if (document.vorgangsbezug?.[0]?.id) return `https://dip.bundestag.de/vorgang/${document.vorgangsbezug[0].id}`;
-  if (document.typ === "Vorgang") return `https://dip.bundestag.de/vorgang/${document.id}`;
+  if (document.vorgangsbezug?.[0]?.id) return buildDipVorgangUrl(document.vorgangsbezug[0].id, document.titel);
+  if (document.typ === "Vorgang") return buildDipVorgangUrl(document.id, document.titel);
   return "https://dip.bundestag.de/";
+}
+
+function buildDipVorgangUrl(id, title) {
+  const slug = slugifyForDip(title);
+  if (!slug) return `https://dip.bundestag.de/suche?term=${encodeURIComponent(id)}`;
+  return `https://dip.bundestag.de/vorgang/${slug}/${encodeURIComponent(id)}`;
+}
+
+function slugifyForDip(value) {
+  return cleanText(value)
+    .toLocaleLowerCase("de-DE")
+    .replace(/["'„“”‚‘’]/g, "")
+    .replace(/&/g, " und ")
+    .replace(/[^a-z0-9äöüß]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function getDescriptorText(descriptor) {
