@@ -24,6 +24,14 @@ npm run fetch:lbeg
 
 Der LBEG-Importer liest Neuigkeiten und Presseinformationen, filtert auf Oel/Gas, Leitungsbau, CCS sowie niedriger priorisiert Geothermie und Lithium und blendet Veranstaltungs-/Jubilaeumsrauschen aus.
 
+Ein erster NILAS-/Landtag-Niedersachsen-Importer fuer Drucksachen ist als vorsichtiger Prototyp vorhanden:
+
+```bash
+npm run fetch:nilas
+```
+
+Er scannt stabile Landtags-Drucksachen-PDFs, extrahiert Text, filtert auf Oel/Gas, CCS, Leitungsbau, Bergrecht, Genehmigungsverfahren, Wasserstoffnaehe sowie niedriger priorisiert Geothermie/Lithium und merged relevante Treffer in `public/data/documents.json`. Der NILAS-Importer ist noch nicht im taeglichen GitHub-Workflow aktiviert, damit die Trefferqualitaet erst lokal geprueft werden kann.
+
 Der API-Key wird nicht ins Repository geschrieben. Lokal wird er als `DIP_API_KEY` gesetzt, in GitHub als Repository Secret mit demselben Namen.
 Alternativ kann lokal eine `.env`-Datei nach dem Muster aus `.env.example` angelegt werden.
 
@@ -34,6 +42,7 @@ Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werd
 ```bash
 npm run analyze:dip
 npm run test:lbeg-filters
+npm run test:nilas-filters
 ```
 
 Hinweis: Fallback-Texte des Importers sind bewusst neutral formuliert, damit fehlende Quellen-Zusammenfassungen keine kuenstlichen Oel-/Gas-Treffer erzeugen.

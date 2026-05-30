@@ -44,6 +44,7 @@ Hinweis: `npm run dev` baut absichtlich zuerst die App und startet dann einen kl
 - `public/data/documents.json` - aktueller Datenbestand im Importformat
 - `scripts/fetch-dip.mjs` - erster Live-Importer fuer DIP Bundestag/Bundesrat
 - `scripts/fetch-lbeg.mjs` - Importer fuer LBEG-Neuigkeiten und LBEG-Presseinformationen
+- `scripts/fetch-nilas.mjs` - erster vorsichtiger Importer fuer NILAS-/Landtag-Niedersachsen-Drucksachen
 - `src/data/taxonomy.json` - editierbare Taxonomie mit Keywords und Gewichten
 - `src/lib/scoring.ts` - Score-Berechnung, Tagging, "Heute neu"-Logik
 - `src/types.ts` - zentrale TypeScript-Typen
@@ -85,11 +86,14 @@ Der erste DIP-Importer ist angelegt. Er liest den API-Key aus `DIP_API_KEY`, ruf
 
 Zusaetzlich ist ein LBEG-Importer angelegt. Er liest LBEG-Neuigkeiten und LBEG-Presseinformationen, normalisiert Treffer fuer Niedersachsen und merged sie in `public/data/documents.json`. Der Filter priorisiert Oel/Gas, Leitungsbau und CCS, nimmt Geothermie und Lithium niedriger priorisiert auf und schliesst Tagungen, Jubilaeen und aehnliche Veranstaltungs-/PR-Treffer aus.
 
+Ein erster NILAS-/Landtag-Niedersachsen-Importer ist als Prototyp angelegt. Er nutzt stabile Landtags-Drucksachen-PDFs, extrahiert Text ohne zusaetzliche Abhaengigkeiten, filtert auf Oel/Gas, CCS, Leitungsbau, Bergrecht, Genehmigungsverfahren, Wasserstoffnaehe sowie niedriger priorisiert Geothermie/Lithium und normalisiert Treffer ins bestehende Dokumentformat. Er ist bewusst noch nicht im GitHub-Workflow aktiviert, weil Scanfenster und Trefferqualitaet zunaechst lokal geprueft werden sollten.
+
 Lokal:
 
 ```bash
 npm run fetch:dip
 npm run fetch:lbeg
+npm run fetch:nilas
 ```
 
 GitHub Actions fuehrt DIP vor dem Build aus, wenn im Repository Secret `DIP_API_KEY` gesetzt ist. LBEG laeuft ohne Secret danach und merged die Niedersachsen-Treffer in den Datenbestand.
@@ -99,7 +103,8 @@ Naechste sinnvolle Reihenfolge:
 1. Eigenen DIP-API-Key beantragen und als GitHub Secret `DIP_API_KEY` hinterlegen.
 2. Import einmal manuell ueber GitHub Actions `workflow_dispatch` testen.
 3. Relevanzbegriffe und Normalisierung anhand echter Treffer nachschaerfen.
-4. Danach NILAS/Landtag Niedersachsen oder Bundesgesetzblatt/recht.bund.de als naechste Quelle pruefen.
+4. NILAS lokal mit kleinen Scanfenstern testen und danach gezielt in den GitHub-Workflow aufnehmen.
+5. Danach Bundesgesetzblatt/recht.bund.de als naechste Quelle pruefen.
 
 Empfohlene erste echte Quelle:
 
