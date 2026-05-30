@@ -45,7 +45,7 @@
     "id": "umwelt-klima",
     "label": "Umwelt/Klima",
     "weight": 10,
-    "keywords": ["klimaschutz", "emissionen", "co2", "umweltauflagen", "wasserrecht", "naturschutz"]
+    "keywords": ["klimaschutz", "emissionen", "industrieemission", "industrieemissionen", "industrieemissionsrichtlinie", "industrieemissions-richtlinie", "ied", "co2", "umweltauflagen", "wasserrecht", "naturschutz"]
   },
   {
     "id": "ccs",
