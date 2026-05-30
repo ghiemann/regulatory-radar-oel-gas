@@ -270,12 +270,30 @@ export function App() {
             <h1>{getViewTitle(view)}</h1>
             <p className="header-copy">Schnelle Priorisierung: Was ist neu, warum ist es relevant und was sollte als Nächstes geprüft werden?</p>
           </div>
-          <div className="briefing-cards" aria-label="Briefing-Kennzahlen">
-            <Metric icon={<CalendarClock size={17} />} label="Heute neu" value={todayCount.toString()} helper="neue oder aktualisierte Signale" />
-            <Metric icon={<Gauge size={17} />} label="Hohe Relevanz" value={highCount.toString()} helper="Score ab 75" />
-            <Metric icon={<AlertTriangle size={17} />} label="Handlungsbedarf" value={actionCount.toString()} helper="heute relevant oder sehr hoher Score" />
-            <Metric icon={<FileSearch size={17} />} label="Zur Prüfung" value={reviewCount.toString()} helper="fachlich prüfen oder beobachten" />
-          </div>
+          <section className="radar-explainer" aria-labelledby="radar-explainer-title">
+            <div className="explainer-copy">
+              <h2 id="radar-explainer-title">Was zeigt dieses Radar?</h2>
+              <p>
+                Dieses Dashboard bündelt legislative und regulatorische Vorgänge aus Bund und Niedersachsen mit Relevanz für Öl & Gas, CCS/CO₂,
+                Bergrecht, Genehmigungen und Umweltrecht. Die Einträge werden nach Aktualität, Quelle, Themenbezug und
+                politischer/regulatorischer Relevanz priorisiert.
+              </p>
+            </div>
+            <div className="explainer-items" aria-label="Orientierung">
+              <div>
+                <strong>Score</strong>
+                <span>Relevanz von 0 bis 100 – je höher, desto eher prüfen.</span>
+              </div>
+              <div>
+                <strong>Handlungsbedarf</strong>
+                <span>Signale, die zeitnah fachlich oder politisch eingeordnet werden sollten.</span>
+              </div>
+              <div>
+                <strong>Zur Prüfung</strong>
+                <span>Relevante Vorgänge für Beobachtung, Bewertung oder interne Rücksprache.</span>
+              </div>
+            </div>
+          </section>
         </header>
 
         <section className="filters-panel" aria-label="Filter">
@@ -381,17 +399,6 @@ export function App() {
         </div>
       </section>
     </main>
-  );
-}
-
-function Metric({ icon, label, value, helper }: { icon: React.ReactNode; label: string; value: string; helper: string }) {
-  return (
-    <div className="metric">
-      <div className="metric-icon">{icon}</div>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{helper}</small>
-    </div>
   );
 }
 
