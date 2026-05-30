@@ -11,7 +11,9 @@ const documentTypeWeights: Record<string, number> = {
   "Kleine Anfrage": 10,
   Plenarprotokoll: 8,
   Antrag: 8,
-  Pressemitteilung: 5
+  Pressemitteilung: 5,
+  Presseinformation: 5,
+  Neuigkeit: 4
 };
 
 const sourceTypeWeights: Record<RegulatoryDocument["sourceType"], number> = {
@@ -30,14 +32,16 @@ export function enrichDocument(document: RegulatoryDocument): RegulatoryDocument
   const documentTypeScore = documentTypeWeights[document.documentType] ?? 6;
   const sourceScore = sourceTypeWeights[document.sourceType] ?? 4;
   const levelBoost = document.level === "Niedersachsen" && tags.some((tag) => ["Erdgas", "Foerderung", "Bergrecht"].includes(tag)) ? 8 : 0;
+  const ccsPolicyBoost = tags.some((tag) => ["CCS / CO2-Speicherung", "CO2-Transport", "CO2-Foerderinstrumente"].includes(tag)) ? 10 : 0;
+  const capacityMarketBoost = tags.includes("Kapazitaetsmarkt / Versorgungssicherheit") ? 6 : 0;
 
-  const relevanceScore = clamp(Math.round(directHitScore + documentTypeScore + sourceScore + recencyBoost + levelBoost), 12, 98);
+  const relevanceScore = clamp(Math.round(directHitScore + documentTypeScore + sourceScore + recencyBoost + levelBoost + ccsPolicyBoost + capacityMarketBoost), 12, 98);
 
   return {
     ...document,
     tags,
     relevanceScore,
-    relevanceReason: buildReason(document, tags, recencyBoost, levelBoost)
+    relevanceReason: buildReason(document, tags, recencyBoost, levelBoost, ccsPolicyBoost, capacityMarketBoost)
   };
 }
 
@@ -105,7 +109,7 @@ function getRecencyBoost(lastActivityDate: string): number {
   return 0;
 }
 
-function buildReason(document: RegulatoryDocument, tags: string[], recencyBoost: number, levelBoost: number): string {
+function buildReason(document: RegulatoryDocument, tags: string[], recencyBoost: number, levelBoost: number, ccsPolicyBoost: number, capacityMarketBoost: number): string {
   const parts = [];
 
   if (tags.length > 0) {
@@ -122,6 +126,14 @@ function buildReason(document: RegulatoryDocument, tags: string[], recencyBoost:
 
   if (levelBoost > 0) {
     parts.push("Niedersachsen-Bezug mit Foerderungs-/Bergrechtsnaehe");
+  }
+
+  if (ccsPolicyBoost > 0) {
+    parts.push("CCS-/CO2-Politik oder Foerderinstrument mit erhöhter Relevanz");
+  }
+
+  if (capacityMarketBoost > 0) {
+    parts.push("Versorgungssicherheits-/Kapazitaetsmarktbezug");
   }
 
   return `${parts.join("; ")}.`;
