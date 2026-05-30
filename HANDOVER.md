@@ -45,6 +45,7 @@ Hinweis: `npm run dev` baut absichtlich zuerst die App und startet dann einen kl
 - `scripts/fetch-dip.mjs` - erster Live-Importer fuer DIP Bundestag/Bundesrat
 - `scripts/fetch-lbeg.mjs` - Importer fuer LBEG-Neuigkeiten und LBEG-Presseinformationen
 - `scripts/fetch-nilas.mjs` - erster vorsichtiger Importer fuer NILAS-/Landtag-Niedersachsen-Drucksachen
+- `scripts/validate-data.mjs` - Datenqualitaetscheck fuer Pflichtfelder, Platzhalter, Fehlerseiten und Dubletten
 - `src/data/taxonomy.json` - editierbare Taxonomie mit Keywords und Gewichten
 - `src/lib/scoring.ts` - Score-Berechnung, Tagging, "Heute neu"-Logik
 - `src/types.ts` - zentrale TypeScript-Typen
@@ -88,9 +89,18 @@ Zusaetzlich ist ein LBEG-Importer angelegt. Er liest LBEG-Neuigkeiten und LBEG-P
 
 Ein erster NILAS-/Landtag-Niedersachsen-Importer ist als Prototyp angelegt. Er nutzt stabile Landtags-Drucksachen-PDFs, extrahiert Text ohne zusaetzliche Abhaengigkeiten, filtert auf Oel/Gas, CCS, Leitungsbau, Bergrecht, Genehmigungsverfahren, Wasserstoffnaehe sowie niedriger priorisiert Geothermie/Lithium und normalisiert Treffer ins bestehende Dokumentformat. Er ist bewusst noch nicht im GitHub-Workflow aktiviert, weil Scanfenster und Trefferqualitaet zunaechst lokal geprueft werden sollten.
 
+Vor Deploys sollte die Datenvalidierung laufen:
+
+```bash
+npm run validate:data
+```
+
+Der Check blockiert alte Mock-/Legacy-IDs, generische Platzhalter-URLs, Fehlerseiten-Links, fehlende Pflichtfelder und offensichtliche Dubletten. Dadurch sollen falsche Treffer mit nicht funktionierenden Originalquellen frueh auffallen.
+
 Lokal:
 
 ```bash
+npm run validate:data
 npm run fetch:dip
 npm run fetch:lbeg
 npm run fetch:nilas

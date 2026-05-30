@@ -9,6 +9,7 @@
     "fetch:lbeg": "node scripts/fetch-lbeg.mjs",
     "fetch:nilas": "node scripts/fetch-nilas.mjs",
     "analyze:dip": "node scripts/fetch-dip.mjs --analyze-current",
+    "validate:data": "node scripts/validate-data.mjs",
     "test:dip-filters": "node scripts/fetch-dip.mjs --test-filters",
     "test:lbeg-filters": "node scripts/fetch-lbeg.mjs --test-filters",
     "test:nilas-filters": "node scripts/fetch-nilas.mjs --test-filters",

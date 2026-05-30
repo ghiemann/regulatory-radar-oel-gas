@@ -40,10 +40,13 @@ Standardmaessig laeuft der DIP-Import im Legacy-Modus fuer die 21. Wahlperiode a
 Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werden:
 
 ```bash
+npm run validate:data
 npm run analyze:dip
 npm run test:lbeg-filters
 npm run test:nilas-filters
 ```
+
+`validate:data` prueft Pflichtfelder, Legacy-/Mock-IDs, generische Platzhalter-URLs, Fehlerseiten-Links und offensichtliche Dubletten. Neue Quellen sollten erst nach erfolgreicher Datenvalidierung deployed werden.
 
 Hinweis: Fallback-Texte des Importers sind bewusst neutral formuliert, damit fehlende Quellen-Zusammenfassungen keine kuenstlichen Oel-/Gas-Treffer erzeugen.
 
