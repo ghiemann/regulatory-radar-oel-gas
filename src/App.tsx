@@ -1,23 +1,24 @@
 import {
-  ArrowDownUp,
+  AlertTriangle,
   CalendarClock,
   ChevronRight,
   ExternalLink,
   FileSearch,
   Filter,
   Gauge,
-  LayoutDashboard,
   Newspaper,
   RotateCcw,
   Search,
-  ShieldCheck
+  ShieldCheck,
+  SlidersHorizontal,
+  X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import taxonomy from "./data/taxonomy.json";
 import { enrichDocument, getScoreBucket, isNewToday } from "./lib/scoring";
 import type { Level, RegulatoryDocument, TaxonomyCategory } from "./types";
 
-type View = "dashboard" | "today";
+type View = "briefing" | "today";
 type SortKey = "score" | "date";
 type SignalKind = "Gesetz" | "Vorgang" | "Meldung";
 const defaultSortKey: SortKey = "date";
@@ -30,6 +31,11 @@ type Filters = {
   status: string;
   tag: string;
   minScore: number;
+};
+
+type FilterChip = {
+  label: string;
+  onRemove: () => void;
 };
 
 const taxonomyCategories = taxonomy as TaxonomyCategory[];
@@ -45,8 +51,9 @@ const initialFilters: Filters = {
 };
 
 export function App() {
-  const [view, setView] = useState<View>("dashboard");
+  const [view, setView] = useState<View>("briefing");
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey);
   const [rawDocuments, setRawDocuments] = useState<RegulatoryDocument[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -87,9 +94,7 @@ export function App() {
 
   const todayCount = useMemo(() => documents.filter((document) => isNewToday(document.lastActivityDate)).length, [documents]);
   const highCount = useMemo(() => documents.filter((document) => document.relevanceScore >= 75).length, [documents]);
-  const lawCount = useMemo(() => documents.filter((document) => getSignalKind(document) === "Gesetz").length, [documents]);
-  const proceedingCount = useMemo(() => documents.filter((document) => getSignalKind(document) === "Vorgang").length, [documents]);
-  const noticeCount = useMemo(() => documents.filter((document) => getSignalKind(document) === "Meldung").length, [documents]);
+  const actionCount = useMemo(() => documents.filter(needsAction).length, [documents]);
   const sourceCount = useMemo(() => new Set(documents.map((document) => getSourceLabel(document))).size, [documents]);
 
   const filteredDocuments = useMemo(() => {
@@ -106,12 +111,17 @@ export function App() {
 
   const selectedDocument = filteredDocuments.find((document) => document.id === selectedId) ?? filteredDocuments[0] ?? documents[0];
   const briefingItems = documents
-    .filter((document) => isNewToday(document.lastActivityDate) && document.relevanceScore >= 45)
+    .filter(needsAction)
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, 4);
+  const activeFilterChips = getActiveFilterChips(filters, sortKey, updateFilters, resetSort);
 
   function updateFilters(nextFilters: Partial<Filters>) {
     setFilters((current) => ({ ...current, ...nextFilters }));
+  }
+
+  function resetSort() {
+    setSortKey(defaultSortKey);
   }
 
   function resetFilters() {
@@ -133,7 +143,7 @@ export function App() {
     return (
       <main className="app-shell">
         <section className="workspace full-width-state">
-          <EmptyDetail title="Daten werden geladen" copy="Die regulatorischen Vorgaenge werden aus der JSON-Datei geladen." />
+          <EmptyDetail title="Daten werden geladen" copy="Die regulatorischen Vorgänge werden aus der JSON-Datei geladen." />
         </section>
       </main>
     );
@@ -148,14 +158,14 @@ export function App() {
           </div>
           <div>
             <strong>Regulatory Radar</strong>
-            <span>Oel & Gas DE</span>
+            <span>Öl & Gas Public Affairs</span>
           </div>
         </div>
 
         <nav className="nav-stack" aria-label="Hauptansichten">
-          <button className={view === "dashboard" ? "nav-button active" : "nav-button"} onClick={() => setView("dashboard")}>
-            <LayoutDashboard size={18} />
-            Dashboard
+          <button className={view === "briefing" ? "nav-button active" : "nav-button"} onClick={() => setView("briefing")}>
+            <Newspaper size={18} />
+            Briefing
           </button>
           <button className={view === "today" ? "nav-button active" : "nav-button"} onClick={() => setView("today")}>
             <CalendarClock size={18} />
@@ -167,10 +177,10 @@ export function App() {
         <section className="briefing" aria-labelledby="briefing-title">
           <div className="briefing-head">
             <div className="section-label">
-              <Newspaper size={16} />
+              <AlertTriangle size={16} />
               <h2 id="briefing-title">Heute wichtig</h2>
             </div>
-            <p>Automatische Kurzliste der neuen, relevanten Signale.</p>
+            <p>Neue Signale mit hoher politischer oder regulatorischer Relevanz.</p>
           </div>
           {briefingItems.length > 0 ? (
             <ul>
@@ -180,7 +190,9 @@ export function App() {
                     <span className="briefing-score">{document.relevanceScore}</span>
                     <span className="briefing-copy">
                       <strong>{document.title}</strong>
-                      <span>{document.level} - {document.status}</span>
+                      <span>
+                        {getSourceLabel(document)} · {getSignalKind(document)}
+                      </span>
                     </span>
                     <ChevronRight size={15} />
                   </button>
@@ -188,92 +200,121 @@ export function App() {
               ))}
             </ul>
           ) : (
-            <p>Keine neuen relevanten Vorgaenge.</p>
+            <p>Keine neuen Signale mit erhöhtem Handlungsbedarf.</p>
           )}
         </section>
       </aside>
 
       <section className="workspace">
-        <header className="topbar">
-          <div>
-            <p className="context-line">Bund + Niedersachsen - Public Affairs Monitoring</p>
-            <h1>{view === "today" ? "Heute neu" : "Dashboard"}</h1>
+        <header className="briefing-top">
+          <div className="briefing-title-block">
+            <p className="context-line">Bund + Niedersachsen · Policy Intelligence für Öl & Gas</p>
+            <h1>{view === "today" ? "Heute neu" : "Morning Briefing"}</h1>
+            <p className="header-copy">Schnelle Priorisierung: Was ist neu, warum ist es relevant und was sollte als Nächstes geprüft werden?</p>
           </div>
-          <div className="stat-strip" aria-label="Kennzahlen">
-            <Metric icon={<Gauge size={17} />} label="Hohe Relevanz" value={highCount.toString()} />
-            <Metric icon={<FileSearch size={17} />} label="Gesetze" value={lawCount.toString()} />
-            <Metric icon={<ShieldCheck size={17} />} label="Vorgaenge" value={proceedingCount.toString()} />
-            <Metric icon={<Newspaper size={17} />} label="Meldungen" value={noticeCount.toString()} />
-            <Metric icon={<CalendarClock size={17} />} label="24h Updates" value={todayCount.toString()} />
-            <Metric icon={<ShieldCheck size={17} />} label="Quellen" value={sourceCount.toString()} />
+          <div className="briefing-cards" aria-label="Briefing-Kennzahlen">
+            <Metric icon={<CalendarClock size={17} />} label="Heute neu" value={todayCount.toString()} helper="neue oder aktualisierte Signale" />
+            <Metric icon={<Gauge size={17} />} label="Hohe Relevanz" value={highCount.toString()} helper="Score ab 75" />
+            <Metric icon={<AlertTriangle size={17} />} label="Handlungsbedarf" value={actionCount.toString()} helper="heute relevant oder sehr hoher Score" />
+            <Metric icon={<ShieldCheck size={17} />} label="Quellen" value={sourceCount.toString()} helper="Monitoring-Abdeckung" />
           </div>
         </header>
 
-        <section className="filters" aria-label="Filter">
-          <label className="search-field">
-            <Search size={17} />
-            <input
-              value={filters.query}
-              onChange={(event) => updateFilters({ query: event.target.value })}
-              placeholder="Titel, Quelle, Zusammenfassung suchen"
-            />
-          </label>
+        <section className="filters-panel" aria-label="Filter">
+          <div className="primary-filters">
+            <label className="search-field">
+              <span className="visually-hidden">Suche</span>
+              <Search size={17} />
+              <input
+                value={filters.query}
+                onChange={(event) => updateFilters({ query: event.target.value })}
+                placeholder="Titel, Quelle oder Zusammenfassung suchen"
+              />
+            </label>
 
-          <Select label="Ebene" value={filters.level} onChange={(value) => updateFilters({ level: value as Filters["level"] })}>
-            <option>Alle</option>
-            <option>Bund</option>
-            <option>Niedersachsen</option>
-          </Select>
+            <Select label="Ebene" value={filters.level} onChange={(value) => updateFilters({ level: value as Filters["level"] })}>
+              <option>Alle</option>
+              <option>Bund</option>
+              <option>Niedersachsen</option>
+            </Select>
 
-          <Select label="Quelle" value={filters.source} onChange={(value) => updateFilters({ source: value })}>
-            <option>Alle</option>
-            {[...new Set(documents.map((document) => getSourceLabel(document)))].sort().map((source) => (
-              <option key={source}>{source}</option>
-            ))}
-          </Select>
+            <Select label="Status" value={filters.status} onChange={(value) => updateFilters({ status: value })}>
+              <option>Alle</option>
+              {[...new Set(documents.map((document) => document.status))].map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </Select>
 
-          <Select label="Signalart" value={filters.signalKind} onChange={(value) => updateFilters({ signalKind: value as Filters["signalKind"] })}>
-            <option>Alle</option>
-            <option>Gesetz</option>
-            <option>Vorgang</option>
-            <option>Meldung</option>
-          </Select>
+            <label className="score-filter">
+              <span>Mindest-Relevanz</span>
+              <input
+                type="range"
+                min="0"
+                max="90"
+                step="15"
+                value={filters.minScore}
+                onChange={(event) => updateFilters({ minScore: Number(event.target.value) })}
+              />
+              <strong>{filters.minScore}</strong>
+            </label>
+          </div>
 
-          <Select label="Status" value={filters.status} onChange={(value) => updateFilters({ status: value })}>
-            <option>Alle</option>
-            {[...new Set(documents.map((document) => document.status))].map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </Select>
+          <div className="filter-actions">
+            <button
+              className="text-button"
+              type="button"
+              aria-expanded={showAdvancedFilters}
+              onClick={() => setShowAdvancedFilters((current) => !current)}
+            >
+              <SlidersHorizontal size={17} />
+              Weitere Filter
+            </button>
+            <button className="text-button secondary" type="button" onClick={resetFilters}>
+              <RotateCcw size={17} />
+              Alle Filter zurücksetzen
+            </button>
+          </div>
 
-          <Select label="Tag" value={filters.tag} onChange={(value) => updateFilters({ tag: value })}>
-            <option>Alle</option>
-            {taxonomyCategories.map((category) => (
-              <option key={category.id}>{category.label}</option>
-            ))}
-          </Select>
+          {showAdvancedFilters && (
+            <div className="advanced-filters">
+              <Select label="Quelle" value={filters.source} onChange={(value) => updateFilters({ source: value })}>
+                <option>Alle</option>
+                {[...new Set(documents.map((document) => getSourceLabel(document)))].sort().map((source) => (
+                  <option key={source}>{source}</option>
+                ))}
+              </Select>
 
-          <label className="score-filter">
-            <span>Min. Score</span>
-            <input
-              type="range"
-              min="0"
-              max="90"
-              step="15"
-              value={filters.minScore}
-              onChange={(event) => updateFilters({ minScore: Number(event.target.value) })}
-            />
-            <strong>{filters.minScore}</strong>
-          </label>
+              <Select label="Signalart" value={filters.signalKind} onChange={(value) => updateFilters({ signalKind: value as Filters["signalKind"] })}>
+                <option>Alle</option>
+                <option>Gesetz</option>
+                <option>Vorgang</option>
+                <option>Meldung</option>
+              </Select>
 
-          <button className="icon-button" onClick={() => setSortKey(sortKey === "score" ? "date" : "score")} title="Sortierung wechseln">
-            <ArrowDownUp size={18} />
-            {sortKey === "score" ? "Score" : "Aktualitaet"}
-          </button>
+              <Select label="Tag" value={filters.tag} onChange={(value) => updateFilters({ tag: value })}>
+                <option>Alle</option>
+                {taxonomyCategories.map((category) => (
+                  <option key={category.id}>{category.label}</option>
+                ))}
+              </Select>
 
-          <button className="icon-button secondary" onClick={resetFilters} title="Filter zuruecksetzen">
-            <RotateCcw size={17} />
-          </button>
+              <button className="text-button sort-button" type="button" onClick={() => setSortKey(sortKey === "score" ? "date" : "score")}>
+                <Gauge size={17} />
+                Sortierung: {sortKey === "score" ? "Score" : "Aktualität"}
+              </button>
+            </div>
+          )}
+
+          {activeFilterChips.length > 0 && (
+            <div className="active-filters" aria-label="Aktive Filter">
+              {activeFilterChips.map((chip) => (
+                <button key={chip.label} type="button" onClick={chip.onRemove}>
+                  {chip.label}
+                  <X size={14} />
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
         <div className="content-grid">
@@ -285,12 +326,13 @@ export function App() {
   );
 }
 
-function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Metric({ icon, label, value, helper }: { icon: React.ReactNode; label: string; value: string; helper: string }) {
   return (
     <div className="metric">
-      {icon}
+      <div className="metric-icon">{icon}</div>
       <span>{label}</span>
       <strong>{value}</strong>
+      <small>{helper}</small>
     </div>
   );
 }
@@ -330,43 +372,50 @@ function DocumentList({
       <section className="document-list empty-state">
         <Filter size={28} />
         <h2>Keine Treffer</h2>
-        <p>Die aktuellen Filter liefern keine Vorgaenge. Score oder Tag reduzieren, um mehr Signale einzuschliessen.</p>
+        <p>Die aktuellen Filter liefern keine Vorgänge. Mindest-Relevanz oder Themenfilter reduzieren, um mehr Signale einzuschließen.</p>
       </section>
     );
   }
 
   return (
-    <section className="document-list" aria-label="Regulatorische Vorgaenge">
+    <section className="document-list" aria-label="Regulatorische Vorgänge">
       <div className="list-header">
-        <span>Vorgang</span>
-        <span>Score</span>
+        <span>Signale und Vorgänge</span>
+        <span>Relevanz</span>
       </div>
-      {documents.map((document) => (
-        <button
-          key={document.id}
-          className={document.id === selectedId ? "document-row selected" : "document-row"}
-          onClick={() => onSelect(document.id)}
-        >
-          <div className="row-main">
-            <div className="row-meta">
-              <span>{formatDate(document.lastActivityDate)}</span>
-              <span>{document.level}</span>
-              <span>{getSourceLabel(document)}</span>
-              <span>{getSignalKind(document)}</span>
-              <span>{document.sourceType}</span>
+      {documents.map((document) => {
+        const hiddenTagCount = Math.max(0, document.tags.length - 3);
+        const isNew = isNewToday(document.lastActivityDate);
+        const scoreBucket = getScoreBucket(document.relevanceScore);
+
+        return (
+          <button
+            key={document.id}
+            className={document.id === selectedId ? "document-row selected" : "document-row"}
+            onClick={() => onSelect(document.id)}
+          >
+            <div className="row-main">
+              <div className="row-meta compact">
+                {isNew && <span className="new-badge">Neu</span>}
+                <span>{formatDate(document.lastActivityDate)}</span>
+                <span>{getSourceLabel(document)}</span>
+                <span>{document.level}</span>
+                <span>{getSignalKind(document)}</span>
+              </div>
+              <h2>{document.title}</h2>
+              <p className="summary-line">{document.summaryShort}</p>
+              <div className="tag-row">
+                {document.tags.slice(0, 3).map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+                {hiddenTagCount > 0 && <span>+{hiddenTagCount}</span>}
+              </div>
+              {scoreBucket === "high" && <p className="reason-line">{document.relevanceReason}</p>}
             </div>
-            <h2>{document.title}</h2>
-            <p>{document.summaryShort}</p>
-            <div className="tag-row">
-              {document.tags.slice(0, 4).map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
-            </div>
-            <p className="reason-line">{document.relevanceReason}</p>
-          </div>
-          <ScoreBadge score={document.relevanceScore} />
-        </button>
-      ))}
+            <ScoreBadge score={document.relevanceScore} />
+          </button>
+        );
+      })}
     </section>
   );
 }
@@ -376,33 +425,45 @@ function DetailPanel({ document }: { document: RegulatoryDocument }) {
     <aside className="detail-panel" aria-label="Detailansicht">
       <div className="detail-header">
         <div>
-          <span className="detail-kicker">{document.documentType}</span>
+          <span className="detail-kicker">{getSignalKind(document)} · {getSourceLabel(document)}</span>
           <h2>{document.title}</h2>
         </div>
         <ScoreBadge score={document.relevanceScore} large />
       </div>
 
-      <div className="detail-meta">
-        <span>{document.level}</span>
-        <span>{getSignalKind(document)}</span>
-        <span>{getSourceLabel(document)}</span>
-        <span>{document.sourceType}</span>
-        <span>{document.source}</span>
-        <span>{formatDate(document.date)}</span>
-        <span>{document.status}</span>
-      </div>
-
-      <section>
-        <h3>Zusammenfassung</h3>
+      <section className="decision-section">
+        <h3>Kurzfazit</h3>
         <p>{document.summaryLong}</p>
       </section>
 
-      <section>
-        <h3>Relevanz-Begruendung</h3>
+      <section className="decision-section">
+        <h3>Warum relevant</h3>
         <p>{document.relevanceReason}</p>
       </section>
 
-      <section>
+      <section className="decision-section">
+        <h3>Mögliche Auswirkung</h3>
+        <p>{deriveImpact(document)}</p>
+      </section>
+
+      <section className="decision-section">
+        <h3>Empfohlener nächster Schritt</h3>
+        <p>{deriveNextStep(document)}</p>
+      </section>
+
+      <section className="decision-section">
+        <h3>Status & Quelle</h3>
+        <div className="detail-meta">
+          <span>{document.level}</span>
+          <span>{getSignalKind(document)}</span>
+          <span>{getSourceLabel(document)}</span>
+          <span>{document.sourceType}</span>
+          <span>{formatDate(document.date)}</span>
+          <span>{document.status}</span>
+        </div>
+      </section>
+
+      <section className="decision-section">
         <h3>Tags</h3>
         <div className="detail-tags">
           {document.tags.map((tag) => (
@@ -412,7 +473,7 @@ function DetailPanel({ document }: { document: RegulatoryDocument }) {
       </section>
 
       <a className="source-link" href={document.url} target="_blank" rel="noreferrer">
-        Originalquelle oeffnen
+        Originalquelle öffnen
         <ExternalLink size={16} />
       </a>
     </aside>
@@ -420,8 +481,8 @@ function DetailPanel({ document }: { document: RegulatoryDocument }) {
 }
 
 function EmptyDetail({
-  title = "Kein Vorgang ausgewaehlt",
-  copy = "Waehle einen Eintrag, um Zusammenfassung, Relevanzgrund und Originalquelle zu sehen."
+  title = "Kein Vorgang ausgewählt",
+  copy = "Wähle einen Eintrag, um Kurzfazit, Begründung, mögliche Auswirkung und Originalquelle zu sehen."
 }: {
   title?: string;
   copy?: string;
@@ -445,6 +506,24 @@ function ScoreBadge({ score, large = false }: { score: number; large?: boolean }
       <span>{label}</span>
     </div>
   );
+}
+
+function getActiveFilterChips(
+  filters: Filters,
+  sortKey: SortKey,
+  updateFilters: (nextFilters: Partial<Filters>) => void,
+  resetSort: () => void
+): FilterChip[] {
+  const chips: FilterChip[] = [];
+  if (filters.query.trim()) chips.push({ label: `Suche: ${filters.query.trim()}`, onRemove: () => updateFilters({ query: "" }) });
+  if (filters.level !== "Alle") chips.push({ label: `Ebene: ${filters.level}`, onRemove: () => updateFilters({ level: "Alle" }) });
+  if (filters.status !== "Alle") chips.push({ label: `Status: ${filters.status}`, onRemove: () => updateFilters({ status: "Alle" }) });
+  if (filters.minScore > 0) chips.push({ label: `Mindest-Relevanz: ${filters.minScore}`, onRemove: () => updateFilters({ minScore: 0 }) });
+  if (filters.source !== "Alle") chips.push({ label: `Quelle: ${filters.source}`, onRemove: () => updateFilters({ source: "Alle" }) });
+  if (filters.signalKind !== "Alle") chips.push({ label: `Signalart: ${filters.signalKind}`, onRemove: () => updateFilters({ signalKind: "Alle" }) });
+  if (filters.tag !== "Alle") chips.push({ label: `Tag: ${filters.tag}`, onRemove: () => updateFilters({ tag: "Alle" }) });
+  if (sortKey !== defaultSortKey) chips.push({ label: "Sortierung: Score", onRemove: resetSort });
+  return chips;
 }
 
 function matchesFilters(document: RegulatoryDocument, filters: Filters): boolean {
@@ -473,7 +552,7 @@ function getSignalKind(document: RegulatoryDocument): SignalKind {
   const type = document.documentType.toLocaleLowerCase("de-DE");
   const status = document.status.toLocaleLowerCase("de-DE");
   const title = document.title.toLocaleLowerCase("de-DE");
-  const lawSignals = ["gesetz", "verordnung", "bekanntmachung", "verkuendung", "verkündung"];
+  const lawSignals = ["gesetz", "verordnung", "bekanntmachung", "verkündung", "verkuendung"];
   if (lawSignals.some((signal) => type.includes(signal) || status.includes(signal) || title.includes(signal))) return "Gesetz";
 
   if (document.sourceType === "Parlament") return "Vorgang";
@@ -488,8 +567,47 @@ function getSourceLabel(document: RegulatoryDocument): string {
   if (source.includes("bmwe")) return "BMWE";
   if (source.includes("bmukn")) return "BMUKN";
   if (source.includes("bundesgesetzblatt")) return "BGBl";
-  if (source.includes("verkuendungsplattform")) return "Verkuendung NI";
+  if (source.includes("verkuendungsplattform")) return "Verkündung NI";
   return document.source;
+}
+
+function needsAction(document: RegulatoryDocument): boolean {
+  return document.relevanceScore >= 75 || (isNewToday(document.lastActivityDate) && document.relevanceScore >= 45);
+}
+
+function deriveImpact(document: RegulatoryDocument): string {
+  const tags = document.tags.join(" ").toLocaleLowerCase("de-DE");
+  const kind = getSignalKind(document);
+
+  if (document.relevanceScore >= 75) {
+    return "Hohe Relevanz: Der Vorgang sollte kurzfristig fachlich bewertet werden, weil ein direkter regulatorischer oder politischer Bezug zur Branche erkennbar ist.";
+  }
+
+  if (tags.includes("ccs") || tags.includes("co2") || tags.includes("methan")) {
+    return "Mögliche Relevanz für CO2-, Methan- oder Dekarbonisierungsanforderungen. Die konkrete Wirkung hängt vom weiteren Verfahren und der Ausgestaltung ab.";
+  }
+
+  if (kind === "Meldung") {
+    return "Frühes politisches oder behördliches Signal. Noch keine gesicherte Rechtswirkung, aber sinnvoll für Monitoring und Einordnung der politischen Richtung.";
+  }
+
+  return "Potenzielle Auswirkung auf regulatorische Rahmenbedingungen. Eine belastbare Bewertung erfordert die Prüfung der Originalquelle und des weiteren Verfahrensstands.";
+}
+
+function deriveNextStep(document: RegulatoryDocument): string {
+  if (document.relevanceScore >= 75) {
+    return "Originalquelle prüfen, interne Zuständigkeit klären und kurzfristig bewerten, ob Positionierung, Stakeholder-Ansprache oder vertieftes Monitoring nötig ist.";
+  }
+
+  if (isNewToday(document.lastActivityDate)) {
+    return "Heute kurz prüfen und entscheiden, ob der Eintrag in das aktive Monitoring aufgenommen oder zunächst beobachtet werden soll.";
+  }
+
+  if (getSignalKind(document) === "Meldung") {
+    return "Als Kontextsignal beobachten und bei Folgevorgängen, Referentenentwürfen oder parlamentarischen Aktivitäten erneut priorisieren.";
+  }
+
+  return "Bei nächster Aktualisierung erneut bewerten und die Originalquelle bei Bedarf fachlich gegenlesen.";
 }
 
 function formatDate(value: string): string {
