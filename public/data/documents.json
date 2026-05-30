@@ -112,57 +112,6 @@
     }
   },
   {
-    "id": "dip-20-10984",
-    "title": "Entwurf eines Gesetzes zur Beschleunigung von Genehmigungsverfahren fuer Energieinfrastruktur",
-    "source": "Bundestag DIP",
-    "sourceType": "Parlament",
-    "level": "Bund",
-    "documentType": "Gesetzentwurf",
-    "date": "2026-05-13",
-    "lastActivityDate": "2026-05-14T08:20:00+02:00",
-    "status": "Ausschussberatung",
-    "url": "https://dip.bundestag.de/",
-    "summaryShort": "Bundesweite Verfahrensbeschleunigung fuer Energieinfrastruktur mit moeglicher Relevanz fuer Pipelines und Speicher.",
-    "summaryLong": "Der Vorgang adressiert verkuerzte Pruef- und Beteiligungsfristen fuer Energieinfrastruktur. Fuer Oel- und Gasunternehmen ist vor allem relevant, ob Pipelines, Speicher und zugehoerige Netzanschluesse in den Anwendungsbereich fallen. Die Ausschussberatung kann zu branchenspezifischen Ausnahmen oder zusaetzlichen Umweltauflagen fuehren.",
-    "relevanceScore": 0,
-    "relevanceReason": "",
-    "tags": []
-  },
-  {
-    "id": "br-164-26",
-    "title": "Bundesratsinitiative zur Umsetzung der EU-Methanverordnung im Energiesektor",
-    "source": "Bundesrat Drucksache",
-    "sourceType": "Parlament",
-    "level": "Bund",
-    "documentType": "Drucksache",
-    "date": "2026-05-12",
-    "lastActivityDate": "2026-05-13T16:45:00+02:00",
-    "status": "Zugeleitet",
-    "url": "https://www.bundesrat.de/DE/dokumente/drucksachen/drucksachen-node.html",
-    "summaryShort": "Neue Berichtspflichten und Messvorgaben fuer Methanemissionen in Gasinfrastruktur werden politisch vorbereitet.",
-    "summaryLong": "Die Initiative nimmt Bezug auf Mess-, Reporting- und Minderungsanforderungen fuer Methanemissionen. Betroffen waeren Betreiber von Gasinfrastruktur, Speicheranlagen und Foerderstandorten. Der Vorgang ist ein fruehes Signal fuer nationale Konkretisierungen und moegliche Vollzugsvorgaben.",
-    "relevanceScore": 0,
-    "relevanceReason": "",
-    "tags": []
-  },
-  {
-    "id": "dip-20-11002",
-    "title": "Antrag: Klimaschutzprogramm 2030 im Gebaeudesektor nachschaerfen",
-    "source": "Bundestag DIP",
-    "sourceType": "Parlament",
-    "level": "Bund",
-    "documentType": "Antrag",
-    "date": "2026-05-11",
-    "lastActivityDate": "2026-05-11T14:30:00+02:00",
-    "status": "Ueberwiesen",
-    "url": "https://dip.bundestag.de/",
-    "summaryShort": "Klimapolitischer Antrag mit moeglichen indirekten Auswirkungen auf Gasnachfrage und Waermemarkt.",
-    "summaryLong": "Der Antrag fokussiert den Gebaeudesektor, Effizienz und Waermetraegerwechsel. Fuer Oel und Gas ist der Bezug indirekt, kann aber fuer Nachfrageentwicklung, politische Narrative und spaetere Gesetzgebung relevant sein. Der Vorgang sollte beobachtet, aber niedriger priorisiert werden als direkte Infrastruktur- oder Bergrechtsthemen.",
-    "relevanceScore": 0,
-    "relevanceReason": "",
-    "tags": []
-  },
-  {
     "id": "nds-vp-2026-17",
     "title": "Aenderung der Niedersaechsischen Verordnung ueber Anlagen zum Umgang mit wassergefaehrdenden Stoffen",
     "source": "Verkuendungsplattform Niedersachsen",
@@ -234,23 +183,6 @@
         "exclusions": []
       }
     }
-  },
-  {
-    "id": "bmuv-2026-press-44",
-    "title": "Pressemitteilung: Dialogprozess zu Industrieemissionen gestartet",
-    "source": "BMUV",
-    "sourceType": "Ministerium",
-    "level": "Bund",
-    "documentType": "Pressemitteilung",
-    "date": "2026-05-06",
-    "lastActivityDate": "2026-05-06T11:00:00+02:00",
-    "status": "Signal",
-    "url": "https://www.bmuv.de/presse",
-    "summaryShort": "Ministerieller Dialogprozess zu Emissionen mit moeglicher Relevanz fuer Raffinerien und Anlagenbetreiber.",
-    "summaryLong": "Die Pressemitteilung ist kein formaler Vorgang, kann aber als frueher Signalgeber dienen. Fuer die Branche ist relevant, ob Raffinerien, Methanemissionen oder Anlagenauflagen Teil des Dialogprozesses werden. Die Quelle hat geringere Verbindlichkeit, aber gute Fruehwarnqualitaet.",
-    "relevanceScore": 0,
-    "relevanceReason": "",
-    "tags": []
   },
   {
     "id": "lbeg-250699",
