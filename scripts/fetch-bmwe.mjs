@@ -33,6 +33,11 @@ const relevanceTerms = {
     "gaskraftwerk",
     "gaskraftwerke",
     "kraftwerksstrategie",
+    "kapazitaetsmarkt",
+    "kapazitätsmarkt",
+    "kapazitaetsmechanismus",
+    "kapazitätsmechanismus",
+    "versorgungssicherheit strom",
     "lng",
     "methan",
     "methanemission",
@@ -55,6 +60,14 @@ const relevanceTerms = {
     "co2 speicherung",
     "co2-transport",
     "co2 transport",
+    "co2-differenzvertrag",
+    "co2-differenzvertraege",
+    "co2 differenzvertrag",
+    "co2 differenzvertraege",
+    "co2 differenzverträge",
+    "klimaschutzvertrag",
+    "klimaschutzvertraege",
+    "klimaschutzverträge",
     "kohlenstoffspeicher",
     "kohlendioxidspeicherung"
   ],
@@ -114,6 +127,16 @@ if (process.argv.includes("--test-filters")) {
     {
       title: "Versorgungssicherheit: Ausschreibung fuer neue Gaskraftwerke startet",
       description: "Gaskraftwerke sollen die Stromversorgung absichern.",
+      expected: true
+    },
+    {
+      title: "Meilenstein fuer die Versorgungssicherheit Strom: Kapazitaetsmarkt sichert zukuenftig die Versorgung mit Strom ab",
+      description: "",
+      expected: true
+    },
+    {
+      title: "KOM erteilt beihilferechtliche Genehmigung zur novellierten Foerderrichtlinie CO2-Differenzvertraege",
+      description: "",
       expected: true
     },
     {
