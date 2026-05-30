@@ -44,6 +44,12 @@ jobs:
           DIP_SCAN_LIMIT: 1200
           DIP_MAX_DOCUMENTS: 80
 
+      - name: Fetch BMWE data
+        run: npm run fetch:bmwe
+        env:
+          BMWE_START_DATE: "2025-03-25"
+          BMWE_MAX_ITEMS: 60
+
       - name: Fetch LBEG data
         run: npm run fetch:lbeg
         env:
