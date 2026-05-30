@@ -43,6 +43,8 @@ Hinweis: `npm run dev` baut absichtlich zuerst die App und startet dann einen kl
 - `src/App.tsx` - Hauptoberflaeche, Views, Filter, Detailpanel, Briefing/Kurzliste
 - `public/data/documents.json` - aktueller Datenbestand im Importformat
 - `scripts/fetch-dip.mjs` - erster Live-Importer fuer DIP Bundestag/Bundesrat
+- `scripts/fetch-bmwe.mjs` - Importer fuer BMWE-RSS-Feeds Pressemitteilungen und Energie
+- `scripts/fetch-bmukn.mjs` - Importer fuer BMUKN-RSS-Feeds Klimaschutz, Umwelt und Natur
 - `scripts/fetch-lbeg.mjs` - Importer fuer LBEG-Neuigkeiten und LBEG-Presseinformationen
 - `scripts/fetch-nilas.mjs` - erster vorsichtiger Importer fuer NILAS-/Landtag-Niedersachsen-Drucksachen
 - `scripts/validate-data.mjs` - Datenqualitaetscheck fuer Pflichtfelder, Platzhalter, Fehlerseiten und Dubletten
@@ -87,6 +89,10 @@ Der erste DIP-Importer ist angelegt. Er liest den API-Key aus `DIP_API_KEY`, ruf
 
 Zusaetzlich ist ein LBEG-Importer angelegt. Er liest LBEG-Neuigkeiten und LBEG-Presseinformationen, normalisiert Treffer fuer Niedersachsen und merged sie in `public/data/documents.json`. Der Filter priorisiert Oel/Gas, Leitungsbau und CCS, nimmt Geothermie und Lithium niedriger priorisiert auf und schliesst Tagungen, Jubilaeen und aehnliche Veranstaltungs-/PR-Treffer aus.
 
+Ein BMWE-Importer ist angelegt und im GitHub-Workflow verdrahtet. Er liest die offiziellen RSS-Feeds fuer Pressemitteilungen und Energie, filtert streng auf Oel/Gas, LNG, Gaskraftwerke, Energieinfrastruktur, Wasserstoffleitungen/-netz, CCS/CO2-Transport und verwandte Themen. Bei 0 relevanten Treffern bleibt `documents.json` unveraendert.
+
+Ein BMUKN-Importer ist angelegt und im GitHub-Workflow verdrahtet. Er liest die offiziellen RSS-Feeds fuer Klimaschutz, Umwelt und Natur, filtert aber besonders streng auf CCS/CO2, Methan, Industrieemissionen, konkrete Oel-/Gas-/Kohlenwasserstoffbezuege sowie Meeresschutz mit Offshore-/Foerderungsbezug. Allgemeine Natur-, Boden-, internationale Klima- oder Verbraucher-Themen sollen draussen bleiben.
+
 Ein erster NILAS-/Landtag-Niedersachsen-Importer ist als Prototyp angelegt. Er nutzt stabile Landtags-Drucksachen-PDFs, extrahiert Text ohne zusaetzliche Abhaengigkeiten, filtert auf Oel/Gas, CCS, Leitungsbau, Bergrecht, Genehmigungsverfahren, Wasserstoffnaehe sowie niedriger priorisiert Geothermie/Lithium und normalisiert Treffer ins bestehende Dokumentformat. Er ist bewusst noch nicht im GitHub-Workflow aktiviert, weil Scanfenster und Trefferqualitaet zunaechst lokal geprueft werden sollten.
 
 Vor Deploys sollte die Datenvalidierung laufen:
@@ -102,6 +108,8 @@ Lokal:
 ```bash
 npm run validate:data
 npm run fetch:dip
+npm run fetch:bmwe
+npm run fetch:bmukn
 npm run fetch:lbeg
 npm run fetch:nilas
 ```

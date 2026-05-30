@@ -32,6 +32,14 @@ npm run fetch:bmwe
 
 Der BMWE-Importer liest offizielle RSS-Feeds fuer Pressemitteilungen und Energie. Der Filter ist bewusst streng und nimmt nur klare Treffer zu Oel/Gas, LNG, Gaskraftwerken, Energieinfrastruktur, Wasserstoffleitungen/-netz, CCS/CO2-Transport und verwandten Themen auf. Bei 0 Treffern bleibt `documents.json` unveraendert.
 
+BMUKN-Meldungen brauchen ebenfalls keinen API-Key:
+
+```bash
+npm run fetch:bmukn
+```
+
+Der BMUKN-Importer liest offizielle RSS-Feeds fuer Klimaschutz, Umwelt und Natur. Der Filter ist besonders streng und nimmt nur CCS/CO2, Methan, Industrieemissionen, konkrete Oel-/Gas-/Kohlenwasserstoffbezuege sowie Meeresschutz mit Offshore-/Foerderungsbezug auf. Allgemeine Natur-, Boden-, internationale Klima- oder Verbraucher-Themen werden ausgeblendet.
+
 Ein erster NILAS-/Landtag-Niedersachsen-Importer fuer Drucksachen ist als vorsichtiger Prototyp vorhanden:
 
 ```bash
@@ -51,6 +59,7 @@ Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werd
 npm run validate:data
 npm run analyze:dip
 npm run test:bmwe-filters
+npm run test:bmukn-filters
 npm run test:lbeg-filters
 npm run test:nilas-filters
 ```
