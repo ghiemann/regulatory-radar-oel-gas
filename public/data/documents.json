@@ -112,6 +112,41 @@
     }
   },
   {
+    "id": "bmwe-e55a02500aff",
+    "title": "Meilenstein für die Versorgungssicherheit Strom: Kapazitätsmarkt sichert zukünftig die Versorgung mit Strom ab",
+    "source": "BMWE Energie",
+    "sourceType": "Ministerium",
+    "level": "Bund",
+    "documentType": "Meldung",
+    "date": "2026-05-13",
+    "lastActivityDate": "2026-05-13T12:00:00+02:00",
+    "status": "Veroeffentlicht",
+    "url": "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/Pressemitteilungen/2026/05/20260513-meilenstein-fuer-die-versorgungssicherheit-strom-kapazitaetsmarkt-sichert-zukuenftig-die-versorgung-mit-strom-ab.html",
+    "summaryShort": "Meilenstein für die Versorgungssicherheit Strom: Kapazitätsmarkt sichert zukünftig die Versorgung mit Strom ab: BMWE Energie",
+    "summaryLong": "Meilenstein für die Versorgungssicherheit Strom: Kapazitätsmarkt sichert zukünftig die Versorgung mit Strom ab: BMWE Energie",
+    "relevanceScore": 0,
+    "relevanceReason": "",
+    "tags": [],
+    "importQuality": {
+      "isRelevant": true,
+      "score": 21,
+      "matchedTerms": {
+        "strong": [
+          "kapazitaetsmarkt",
+          "kapazitätsmarkt",
+          "versorgungssicherheit strom"
+        ],
+        "medium": [
+          "versorgungssicherheit"
+        ],
+        "weak": [
+          "energie"
+        ],
+        "exclusions": []
+      }
+    }
+  },
+  {
     "id": "nds-vp-2026-17",
     "title": "Aenderung der Niedersaechsischen Verordnung ueber Anlagen zum Umgang mit wassergefaehrdenden Stoffen",
     "source": "Verkuendungsplattform Niedersachsen",
@@ -144,6 +179,39 @@
     "relevanceScore": 0,
     "relevanceReason": "",
     "tags": []
+  },
+  {
+    "id": "bmwe-f81b26b8fc36",
+    "title": "KOM erteilt beihilferechtliche Genehmigung zur novellierten Förderrichtlinie CO2-Differenzverträge",
+    "source": "BMWE Energie",
+    "sourceType": "Ministerium",
+    "level": "Bund",
+    "documentType": "Meldung",
+    "date": "2026-05-07",
+    "lastActivityDate": "2026-05-07T12:00:00+02:00",
+    "status": "Veroeffentlicht",
+    "url": "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/Pressemitteilungen/2026/05/20260507-kom-erteilt-beihilferechtlich-genehmigung-zur-novellierten-foerderrichtlinie-co2-differenzvertraege.html",
+    "summaryShort": "KOM erteilt beihilferechtliche Genehmigung zur novellierten Förderrichtlinie CO2-Differenzverträge: BMWE Energie",
+    "summaryLong": "KOM erteilt beihilferechtliche Genehmigung zur novellierten Förderrichtlinie CO2-Differenzverträge: BMWE Energie",
+    "relevanceScore": 0,
+    "relevanceReason": "",
+    "tags": [],
+    "importQuality": {
+      "isRelevant": true,
+      "score": 19,
+      "matchedTerms": {
+        "strong": [
+          "co2-differenzvertraege",
+          "co2 differenzvertraege",
+          "co2 differenzverträge"
+        ],
+        "medium": [],
+        "weak": [
+          "energie"
+        ],
+        "exclusions": []
+      }
+    }
   },
   {
     "id": "lbeg-250753",
@@ -179,6 +247,39 @@
           "energie",
           "untergrund",
           "niedersachsen"
+        ],
+        "exclusions": []
+      }
+    }
+  },
+  {
+    "id": "bmwe-e8e4d3cdfa35",
+    "title": "BMWE startet Gebotsverfahren 2026 der CO2-Differenzverträge",
+    "source": "BMWE Energie",
+    "sourceType": "Ministerium",
+    "level": "Bund",
+    "documentType": "Meldung",
+    "date": "2026-05-05",
+    "lastActivityDate": "2026-05-05T12:00:00+02:00",
+    "status": "Veroeffentlicht",
+    "url": "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/Pressemitteilungen/2026/05/20260505-bmwe-startet-gebotsverfahren-2026-der-co2-differenzvertraege.html",
+    "summaryShort": "BMWE startet Gebotsverfahren 2026 der CO2-Differenzverträge: BMWE Energie",
+    "summaryLong": "BMWE startet Gebotsverfahren 2026 der CO2-Differenzverträge: BMWE Energie",
+    "relevanceScore": 0,
+    "relevanceReason": "",
+    "tags": [],
+    "importQuality": {
+      "isRelevant": true,
+      "score": 19,
+      "matchedTerms": {
+        "strong": [
+          "co2-differenzvertraege",
+          "co2 differenzvertraege",
+          "co2 differenzverträge"
+        ],
+        "medium": [],
+        "weak": [
+          "energie"
         ],
         "exclusions": []
       }
