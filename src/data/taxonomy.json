@@ -50,14 +50,26 @@
   {
     "id": "ccs",
     "label": "CCS / CO2-Speicherung",
-    "weight": 19,
-    "keywords": ["ccs", "carbon capture and storage", "carbon management", "co2 speicher", "co2 speicherung", "co2-speicher", "co2-speicherung", "kohlenstoffspeicher", "kohlenstoffspeicherung", "kohlendioxidspeicherung", "kohlenstoffabscheidung", "negativemission", "negativemissionen", "negative emissionen"]
+    "weight": 22,
+    "keywords": ["ccs", "carbon capture and storage", "carbon management", "carbon-management", "co2 speicher", "co2 speicherung", "co2-speicher", "co2-speicherung", "co2 transport", "co2-transport", "co2 pipeline", "co2-pipeline", "kohlenstoffspeicher", "kohlenstoffspeicherung", "kohlendioxidspeicherung", "kohlenstoffabscheidung", "negativemission", "negativemissionen", "negative emissionen"]
   },
   {
     "id": "co2-transport",
     "label": "CO2-Transport",
     "weight": 16,
     "keywords": ["co2 transport", "co2 pipeline", "co2 leitung", "co2 transportnetz", "kohlendioxid leitung", "kohlendioxid transport", "kohlenstofftransport", "kohlendioxidtransport"]
+  },
+  {
+    "id": "co2-foerderinstrumente",
+    "label": "CO2-Foerderinstrumente",
+    "weight": 18,
+    "keywords": ["co2-differenzvertrag", "co2-differenzvertraege", "co2-differenzverträge", "co2 differenzvertrag", "co2 differenzvertraege", "co2 differenzverträge", "klimaschutzvertrag", "klimaschutzvertraege", "klimaschutzverträge", "carbon contracts for difference", "ccfd", "ccfds", "bundesfoerderung industrie und klimaschutz", "bundesforderung industrie und klimaschutz", "bundesfoerderung industrie", "bundesforderung industrie", "bik", "foerderrichtlinie co2", "forderrichtlinie co2", "gebotsverfahren"]
+  },
+  {
+    "id": "kapazitaetsmarkt",
+    "label": "Kapazitaetsmarkt / Versorgungssicherheit",
+    "weight": 15,
+    "keywords": ["kapazitaetsmarkt", "kapazitätsmarkt", "kapazitaetsmechanismus", "kapazitätsmechanismus", "versorgungssicherheit strom", "kraftwerksstrategie", "gaskraftwerk", "gaskraftwerke", "backup-kraftwerk", "backup kraftwerk"]
   },
   {
     "id": "meeresschutz",
