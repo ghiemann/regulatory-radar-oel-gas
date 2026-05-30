@@ -27,6 +27,8 @@ Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werd
 npm run analyze:dip
 ```
 
+Hinweis: Fallback-Texte des Importers sind bewusst neutral formuliert, damit fehlende Quellen-Zusammenfassungen keine kuenstlichen Oel-/Gas-Treffer erzeugen.
+
 ## Schnellstart
 
 ```bash
