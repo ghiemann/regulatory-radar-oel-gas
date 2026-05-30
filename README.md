@@ -16,6 +16,14 @@ Live-Daten aus DIP koennen mit einem API-Key erzeugt werden:
 npm run fetch:dip
 ```
 
+LBEG-Meldungen aus Niedersachsen brauchen keinen API-Key:
+
+```bash
+npm run fetch:lbeg
+```
+
+Der LBEG-Importer liest Neuigkeiten und Presseinformationen, filtert auf Oel/Gas, Leitungsbau, CCS sowie niedriger priorisiert Geothermie und Lithium und blendet Veranstaltungs-/Jubilaeumsrauschen aus.
+
 Der API-Key wird nicht ins Repository geschrieben. Lokal wird er als `DIP_API_KEY` gesetzt, in GitHub als Repository Secret mit demselben Namen.
 Alternativ kann lokal eine `.env`-Datei nach dem Muster aus `.env.example` angelegt werden.
 
@@ -25,6 +33,7 @@ Die aktuelle Datenliste kann ohne API-Abruf gegen die Importfilter geprueft werd
 
 ```bash
 npm run analyze:dip
+npm run test:lbeg-filters
 ```
 
 Hinweis: Fallback-Texte des Importers sind bewusst neutral formuliert, damit fehlende Quellen-Zusammenfassungen keine kuenstlichen Oel-/Gas-Treffer erzeugen.

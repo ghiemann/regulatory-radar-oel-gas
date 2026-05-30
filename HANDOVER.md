@@ -7,7 +7,7 @@ Dieses Projekt ist ein lokaler Stufe-1-Prototyp fuer einen KI-gestuetzten Regula
 Aktueller Stand:
 
 - React + TypeScript App mit Vite-Build
-- Mockdaten mit realistisch wirkenden Quellenfeldern
+- JSON-Datenbestand unter `public/data/documents.json`, erzeugbar aus Importern
 - Taxonomie-basierte Klassifikation
 - Regelbasierter Relevanzscore mit erklaerbarer Begruendung
 - Dashboard, "Heute neu", Detailansicht und "Heute wichtig"-Kurzliste
@@ -41,8 +41,9 @@ Hinweis: `npm run dev` baut absichtlich zuerst die App und startet dann einen kl
 ## Wichtige Dateien
 
 - `src/App.tsx` - Hauptoberflaeche, Views, Filter, Detailpanel, Briefing/Kurzliste
-- `public/data/documents.json` - aktuelle Mockdokumente im spaeteren Importformat
+- `public/data/documents.json` - aktueller Datenbestand im Importformat
 - `scripts/fetch-dip.mjs` - erster Live-Importer fuer DIP Bundestag/Bundesrat
+- `scripts/fetch-lbeg.mjs` - Importer fuer LBEG-Neuigkeiten und LBEG-Presseinformationen
 - `src/data/taxonomy.json` - editierbare Taxonomie mit Keywords und Gewichten
 - `src/lib/scoring.ts` - Score-Berechnung, Tagging, "Heute neu"-Logik
 - `src/types.ts` - zentrale TypeScript-Typen
@@ -82,20 +83,23 @@ Die linke Kurzliste zeigt neue oder aktualisierte Dokumente mit mindestens mittl
 
 Der erste DIP-Importer ist angelegt. Er liest den API-Key aus `DIP_API_KEY`, ruft im Standardmodus Vorgaenge und Drucksachen der 21. Wahlperiode ab dem 25.03.2025 ab, filtert lokal nach Oel-/Gas-relevanten Begriffen und schreibt normalisierte Eintraege nach `public/data/documents.json`. Damit entsteht ein kleiner Legacy-Bestand aus laufenden und abgeschlossenen Verfahren der aktuellen Legislaturperiode, nicht nur ein Tagesdelta.
 
+Zusaetzlich ist ein LBEG-Importer angelegt. Er liest LBEG-Neuigkeiten und LBEG-Presseinformationen, normalisiert Treffer fuer Niedersachsen und merged sie in `public/data/documents.json`. Der Filter priorisiert Oel/Gas, Leitungsbau und CCS, nimmt Geothermie und Lithium niedriger priorisiert auf und schliesst Tagungen, Jubilaeen und aehnliche Veranstaltungs-/PR-Treffer aus.
+
 Lokal:
 
 ```bash
 npm run fetch:dip
+npm run fetch:lbeg
 ```
 
-GitHub Actions fuehrt den Import automatisch vor dem Build aus, wenn im Repository Secret `DIP_API_KEY` gesetzt ist. Ohne Secret bleibt der Build mit den vorhandenen Mockdaten lauffaehig.
+GitHub Actions fuehrt DIP vor dem Build aus, wenn im Repository Secret `DIP_API_KEY` gesetzt ist. LBEG laeuft ohne Secret danach und merged die Niedersachsen-Treffer in den Datenbestand.
 
 Naechste sinnvolle Reihenfolge:
 
 1. Eigenen DIP-API-Key beantragen und als GitHub Secret `DIP_API_KEY` hinterlegen.
 2. Import einmal manuell ueber GitHub Actions `workflow_dispatch` testen.
 3. Relevanzbegriffe und Normalisierung anhand echter Treffer nachschaerfen.
-4. Danach Bundesgesetzblatt/recht.bund.de als zweite Quelle pruefen.
+4. Danach NILAS/Landtag Niedersachsen oder Bundesgesetzblatt/recht.bund.de als naechste Quelle pruefen.
 
 Empfohlene erste echte Quelle:
 
@@ -103,8 +107,9 @@ Empfohlene erste echte Quelle:
 
 Danach:
 
+- NILAS/Landtag Niedersachsen fuer direkte Landesgesetzgebung
 - Bundesgesetzblatt / recht.bund.de fuer Verkuendungen
-- Landtag Niedersachsen vorsichtig pruefen, da dort vermutlich eher Website-/Dokumentenlogik als eine einfache API relevant ist
+- EU-Quellen fuer Kommissions-/Parlaments-/Ratssignale
 
 ## GitHub-Uebergabe
 
@@ -150,8 +155,8 @@ Wichtig: Fuer echte Datenimporte mit API-Key sollte der Import nicht im Browser 
 
 ## Bekannte Grenzen
 
-- Noch keine echten Datenquellen angebunden.
+- Importer sind regelbasiert; Quellenabdeckung und Deduplikation muessen weiter stabilisiert werden.
 - Keine Persistenz, keine Nutzerkonten, keine Alerts.
 - Relevanzlogik ist bewusst einfach und erklaerbar, nicht KI-basiert.
-- Die Originalquellen-URLs sind aktuell Quellen-Startseiten oder Suchseiten, keine exakt gematchten Dokument-URLs.
+- Originalquellen-URLs werden aus DIP/LBEG erzeugt, sollten aber bei neuen Quellentypen weiter geprueft werden.
 - Kein juristisches Analyse- oder Beratungstool.

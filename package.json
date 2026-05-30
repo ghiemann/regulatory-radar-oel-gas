@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "npm run build && node scripts/serve-dist.mjs",
     "fetch:dip": "node scripts/fetch-dip.mjs",
+    "fetch:lbeg": "node scripts/fetch-lbeg.mjs",
     "analyze:dip": "node scripts/fetch-dip.mjs --analyze-current",
     "test:dip-filters": "node scripts/fetch-dip.mjs --test-filters",
+    "test:lbeg-filters": "node scripts/fetch-lbeg.mjs --test-filters",
     "build": "tsc --noEmit && vite build && node scripts/fix-dist-paths.mjs && node scripts/create-simple-standalone.mjs",
     "preview": "node scripts/serve-dist.mjs"
   },
