@@ -210,6 +210,14 @@ if (process.argv.includes("--test-filters")) {
       expected: false
     },
     {
+      title: "Speicherungsanlaesse in der Datei Gewalttaeter Sport und Datenuebermittlung in die USA, Kanada und Mexiko anlaesslich der Fussball-Weltmeisterschaft 2026",
+      expected: false
+    },
+    {
+      title: "Entwurf eines Gesetzes zur Einfuehrung einer IP-Adressspeicherung und Weiterentwicklung der Befugnisse zur Datenerhebung im Strafverfahren",
+      expected: false
+    },
+    {
       title: "Gesetz zur Aenderung des Energiewirtschaftsgesetzes und weiterer energierechtlicher Vorschriften zur Umsetzung des Europaeischen Gas- und Wasserstoff-Binnenmarktpakets",
       expected: true
     },
@@ -537,7 +545,7 @@ function getDescriptorText(descriptor) {
 
 function summarize(value, maxLength) {
   const text = cleanText(value);
-  if (!text) return "DIP-Dokument mit moeglicher Relevanz fuer Oel- und Gas-Monitoring.";
+  if (!text) return "Keine Kurzbeschreibung in der Quelle verfuegbar.";
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength - 1).trim()}...`;
 }
