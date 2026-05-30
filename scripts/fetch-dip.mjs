@@ -304,9 +304,15 @@ if (normalizedDocuments.length === 0) {
 }
 
 await ensureFallbackExists();
-await writeJson(OUTPUT_PATH, normalizedDocuments);
+const currentDocuments = await readCurrentDocuments();
+const mergedDocuments = dedupeById(
+  [...normalizedDocuments, ...currentDocuments.filter((document) => !isDipDocument(document))],
+  (document) => document.id
+).sort((a, b) => new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime());
 
-console.log(`DIP-Import abgeschlossen: ${normalizedDocuments.length} Dokumente nach ${relativeToProject(OUTPUT_PATH)} geschrieben.`);
+await writeJson(OUTPUT_PATH, mergedDocuments);
+
+console.log(`DIP-Import abgeschlossen: ${normalizedDocuments.length} DIP-Dokumente nach ${relativeToProject(OUTPUT_PATH)} gemergt.`);
 
 async function fetchDipDocuments() {
   const params = useLegacyMode
@@ -586,6 +592,20 @@ function dedupeById(items, getId) {
     result.set(getId(item), item);
   }
   return [...result.values()];
+}
+
+async function readCurrentDocuments() {
+  try {
+    return JSON.parse(await readFile(OUTPUT_PATH, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function isDipDocument(document) {
+  const id = String(document?.id ?? "");
+  const source = String(document?.source ?? "");
+  return id.startsWith("dip-") || source.includes("DIP");
 }
 
 function daysAgo(days) {
