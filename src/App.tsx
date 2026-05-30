@@ -19,11 +19,14 @@ import type { Level, RegulatoryDocument, TaxonomyCategory } from "./types";
 
 type View = "dashboard" | "today";
 type SortKey = "score" | "date";
+type SignalKind = "Gesetz" | "Vorgang" | "Meldung";
 const defaultSortKey: SortKey = "date";
 
 type Filters = {
   query: string;
   level: "Alle" | Level;
+  source: string;
+  signalKind: "Alle" | SignalKind;
   status: string;
   tag: string;
   minScore: number;
@@ -34,6 +37,8 @@ const taxonomyCategories = taxonomy as TaxonomyCategory[];
 const initialFilters: Filters = {
   query: "",
   level: "Alle",
+  source: "Alle",
+  signalKind: "Alle",
   status: "Alle",
   tag: "Alle",
   minScore: 0
@@ -82,6 +87,10 @@ export function App() {
 
   const todayCount = useMemo(() => documents.filter((document) => isNewToday(document.lastActivityDate)).length, [documents]);
   const highCount = useMemo(() => documents.filter((document) => document.relevanceScore >= 75).length, [documents]);
+  const lawCount = useMemo(() => documents.filter((document) => getSignalKind(document) === "Gesetz").length, [documents]);
+  const proceedingCount = useMemo(() => documents.filter((document) => getSignalKind(document) === "Vorgang").length, [documents]);
+  const noticeCount = useMemo(() => documents.filter((document) => getSignalKind(document) === "Meldung").length, [documents]);
+  const sourceCount = useMemo(() => new Set(documents.map((document) => getSourceLabel(document))).size, [documents]);
 
   const filteredDocuments = useMemo(() => {
     return documents
@@ -192,8 +201,11 @@ export function App() {
           </div>
           <div className="stat-strip" aria-label="Kennzahlen">
             <Metric icon={<Gauge size={17} />} label="Hohe Relevanz" value={highCount.toString()} />
+            <Metric icon={<FileSearch size={17} />} label="Gesetze" value={lawCount.toString()} />
+            <Metric icon={<ShieldCheck size={17} />} label="Vorgaenge" value={proceedingCount.toString()} />
+            <Metric icon={<Newspaper size={17} />} label="Meldungen" value={noticeCount.toString()} />
             <Metric icon={<CalendarClock size={17} />} label="24h Updates" value={todayCount.toString()} />
-            <Metric icon={<ShieldCheck size={17} />} label="Quellen" value="4+" />
+            <Metric icon={<ShieldCheck size={17} />} label="Quellen" value={sourceCount.toString()} />
           </div>
         </header>
 
@@ -211,6 +223,20 @@ export function App() {
             <option>Alle</option>
             <option>Bund</option>
             <option>Niedersachsen</option>
+          </Select>
+
+          <Select label="Quelle" value={filters.source} onChange={(value) => updateFilters({ source: value })}>
+            <option>Alle</option>
+            {[...new Set(documents.map((document) => getSourceLabel(document)))].sort().map((source) => (
+              <option key={source}>{source}</option>
+            ))}
+          </Select>
+
+          <Select label="Signalart" value={filters.signalKind} onChange={(value) => updateFilters({ signalKind: value as Filters["signalKind"] })}>
+            <option>Alle</option>
+            <option>Gesetz</option>
+            <option>Vorgang</option>
+            <option>Meldung</option>
           </Select>
 
           <Select label="Status" value={filters.status} onChange={(value) => updateFilters({ status: value })}>
@@ -325,7 +351,9 @@ function DocumentList({
             <div className="row-meta">
               <span>{formatDate(document.lastActivityDate)}</span>
               <span>{document.level}</span>
-              <span>{document.status}</span>
+              <span>{getSourceLabel(document)}</span>
+              <span>{getSignalKind(document)}</span>
+              <span>{document.sourceType}</span>
             </div>
             <h2>{document.title}</h2>
             <p>{document.summaryShort}</p>
@@ -356,6 +384,9 @@ function DetailPanel({ document }: { document: RegulatoryDocument }) {
 
       <div className="detail-meta">
         <span>{document.level}</span>
+        <span>{getSignalKind(document)}</span>
+        <span>{getSourceLabel(document)}</span>
+        <span>{document.sourceType}</span>
         <span>{document.source}</span>
         <span>{formatDate(document.date)}</span>
         <span>{document.status}</span>
@@ -428,10 +459,37 @@ function matchesFilters(document: RegulatoryDocument, filters: Filters): boolean
   return (
     queryHit &&
     (filters.level === "Alle" || document.level === filters.level) &&
+    (filters.source === "Alle" || getSourceLabel(document) === filters.source) &&
+    (filters.signalKind === "Alle" || getSignalKind(document) === filters.signalKind) &&
     (filters.status === "Alle" || document.status === filters.status) &&
     (filters.tag === "Alle" || document.tags.includes(filters.tag)) &&
     document.relevanceScore >= filters.minScore
   );
+}
+
+function getSignalKind(document: RegulatoryDocument): SignalKind {
+  if (document.sourceType === "Verkuendung") return "Gesetz";
+
+  const type = document.documentType.toLocaleLowerCase("de-DE");
+  const status = document.status.toLocaleLowerCase("de-DE");
+  const title = document.title.toLocaleLowerCase("de-DE");
+  const lawSignals = ["gesetz", "verordnung", "bekanntmachung", "verkuendung", "verkündung"];
+  if (lawSignals.some((signal) => type.includes(signal) || status.includes(signal) || title.includes(signal))) return "Gesetz";
+
+  if (document.sourceType === "Parlament") return "Vorgang";
+  return "Meldung";
+}
+
+function getSourceLabel(document: RegulatoryDocument): string {
+  const source = document.source.toLocaleLowerCase("de-DE");
+  if (source.includes("dip")) return "DIP";
+  if (source.includes("nilas") || source.includes("landtag niedersachsen")) return "NILAS";
+  if (source.includes("lbeg")) return "LBEG";
+  if (source.includes("bmwe")) return "BMWE";
+  if (source.includes("bmukn")) return "BMUKN";
+  if (source.includes("bundesgesetzblatt")) return "BGBl";
+  if (source.includes("verkuendungsplattform")) return "Verkuendung NI";
+  return document.source;
 }
 
 function formatDate(value: string): string {
