@@ -37,8 +37,7 @@ jobs:
         run: npm run validate:data
 
       - name: Inspect generated BMWE records
-        run: |
-        node -e "const fs=require('fs'); const docs=JSON.parse(fs.readFileSync('public/data/documents.json','utf8')); console.log(JSON.stringify(docs.filter(d=>String(d.id).startsWith('bmwe-')), null, 2));"
-
+        run: cat public/data/documents.json
+        
       - name: Build application
         run: npm run build
