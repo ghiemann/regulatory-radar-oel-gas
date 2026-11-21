@@ -71,7 +71,7 @@ export type ChangeType =
  * - an item whose text extraction was incomplete,
  * - an item that requires manual checking.
  */
-export type ImportQualityStatus =
+export type QualityStatus =
   | "clean"
   | "warning"
   | "manual-review";
@@ -239,7 +239,7 @@ export type RegulatoryDocument = {
   /**
    * Quality information from the importer.
    */
-  importQuality?: ImportQuality;
+  dataQuality?: ImportQuality;
 };
 
 /**
