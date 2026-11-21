@@ -189,8 +189,8 @@ for (const feed of BMWE_FEEDS) {
 const importedDocuments = dedupeById(candidates, (candidate) => candidate.link)
   .map(normalizeItem)
   .filter((document) => document.date >= startDate)
-  .map((document) => ({ ...document, importQuality: evaluateImportQuality(document) }))
-  .filter((document) => document.importQuality.isRelevant)
+  .map((document) => ({ ...document, importMatch: evaluateImportQuality(document) }))
+  .filter((document) => document.importMatch.isRelevant)
   .sort(sortByActivityDesc)
   .slice(0, maxItems);
 
@@ -199,8 +199,8 @@ if (dryRun) {
   console.log(`Startdatum: ${startDate || "nicht begrenzt"}`);
   for (const document of importedDocuments) {
     const terms = [
-      ...document.importQuality.matchedTerms.strong,
-      ...document.importQuality.matchedTerms.medium
+      ...document.importMatch.matchedTerms.strong,
+      ...document.importMatch.matchedTerms.medium
     ].slice(0, 6).join(", ");
     console.log(`${document.date} ${document.documentType}: ${document.title} (${terms})`);
   }
