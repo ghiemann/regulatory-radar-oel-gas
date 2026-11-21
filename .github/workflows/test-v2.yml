@@ -26,6 +26,16 @@ jobs:
         
       - name: Test BMWE import filters
         run: npm run test:bmwe-filters
+        
+      - name: Fetch BMWE test data
+        run: npm run fetch:bmwe
+        env:
+          BMWE_START_DATE: "2026-10-01"
+          BMWE_MAX_ITEMS: 20
+
+      - name: Validate generated data
+        run: npm run validate:data
+
 
       - name: Build application
         run: npm run build
