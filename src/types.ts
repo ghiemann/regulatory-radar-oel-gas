@@ -143,7 +143,7 @@ export type RegulatoryDocument = {
    * Remove once all importers and UI components use
    * publishedAt/detectedAt/lastCheckedAt.
    */
-  date?: string;
+  date: string;
 
   /**
    * Last known public activity associated with the record.
@@ -233,8 +233,8 @@ export type RegulatoryDocument = {
    * These should be removed once scoring.ts and App.tsx use the
    * new regulatorySignificance fields.
    */
-  relevanceScore?: number;
-  relevanceReason?: string;
+  relevanceScore: number;
+  relevanceReason: string;
 
   /**
    * Quality information from the importer.
