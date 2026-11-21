@@ -6,26 +6,20 @@ on:
       - radar-v2
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout radar-v2
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
+          node-version: "24"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript and production build
+      - name: Build application
         run: npm run build
-`
