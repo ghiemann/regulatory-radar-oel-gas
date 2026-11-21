@@ -33,6 +33,9 @@ jobs:
       - name: Test LBEG import filters and records
         run: npm run test:lbeg-filters
 
+      - name: Test DIP import filters and dates
+        run: npm run test:dip-filters
+
       - name: Fetch BMWE test data
         run: npm run fetch:bmwe
         env:

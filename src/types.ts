@@ -137,6 +137,9 @@ export type RegulatoryDocument = {
    */
   lastCheckedAt: string;
 
+  /** Source database update time; not necessarily a legislative event. */
+  sourceUpdatedAt?: string;
+
   /**
    * Legacy field retained temporarily for backwards compatibility.
    *

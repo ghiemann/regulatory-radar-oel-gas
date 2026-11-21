@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { dedupeById } from "./lib/document-utils.mjs";
+import { assessImportQuality, dedupeById, getVerificationStatus, nowIso, toIsoDate } from "./lib/document-utils.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
@@ -159,16 +159,16 @@ const falsePositiveTerms = [
 
 if (process.argv.includes("--analyze-current")) {
   const currentDocuments = JSON.parse(await readFile(OUTPUT_PATH, "utf8"));
-  const evaluatedDocuments = currentDocuments.map(addImportQuality);
-  const kept = evaluatedDocuments.filter((document) => document.importQuality.isRelevant);
-  const dropped = evaluatedDocuments.filter((document) => !document.importQuality.isRelevant);
+  const evaluatedDocuments = currentDocuments.map(addImportMatch);
+  const kept = evaluatedDocuments.filter((document) => document.importMatch.isRelevant);
+  const dropped = evaluatedDocuments.filter((document) => !document.importMatch.isRelevant);
 
   console.log(`Importanalyse fuer ${relativeToProject(OUTPUT_PATH)}`);
   console.log(`Behalten: ${kept.length}`);
   console.log(`Herausfiltern: ${dropped.length}`);
 
   for (const document of evaluatedDocuments) {
-    const quality = document.importQuality;
+    const quality = document.importMatch;
     const decision = quality.isRelevant ? "KEEP" : "DROP";
     const matches = [
       quality.matchedTerms.strong.length > 0 ? `strong=${quality.matchedTerms.strong.join(",")}` : "",
@@ -273,6 +273,23 @@ if (process.argv.includes("--test-filters")) {
     console.log(`${ok ? "OK" : "FAIL"} expected=${testCase.expected ? "KEEP" : "DROP"} actual=${quality.isRelevant ? "KEEP" : "DROP"} score=${quality.score}: ${testCase.title}`);
   }
 
+  const oldRecord = { id: "123", typ: "Drucksache", titel: "Erdgas und Methan", datum: "2020-02-01", aktualisiert: "2026-11-21T08:00:00Z", pdf_url: "https://example.org/public.pdf" };
+  const checkedAt = "2026-11-21T10:00:00Z";
+  const first = normalizeDipDocument(oldRecord, new Map(), checkedAt);
+  const second = normalizeDipDocument(oldRecord, new Map([[first.id, first]]), "2026-11-22T10:00:00Z");
+  const procedure = normalizeDipDocument({ ...oldRecord, id: "456", typ: "Vorgang" }, new Map(), checkedAt);
+  const invalid = normalizeDipDocument({ ...oldRecord, datum: "" }, new Map(), checkedAt);
+  const metadataOk = first.publishedAt === "2020-02-01" && first.date === "2020-02-01" &&
+    first.lastActivityDate === "2020-02-01" && first.detectedAt === checkedAt &&
+    first.sourceUpdatedAt === oldRecord.aktualisiert && first.verificationStatus === "primary-source" &&
+    first.dataQuality.status === "clean" && addImportMatch(first).importMatch.isRelevant &&
+    second.detectedAt === checkedAt && second.lastCheckedAt === "2026-11-22T10:00:00Z" &&
+    procedure.publishedAt === "" && procedure.dataQuality.issues.includes("unknown-publication-date") &&
+    procedure.lastActivityDate === "2020-02-01" && invalid === null &&
+    first.regulatorySignificanceScore === 0 && first.relevanceScore === 0;
+  if (!metadataOk) failures += 1;
+  console.log(`${metadataOk ? "OK" : "FAIL"} DIP date separation, metadata and repeat detection`);
+
   if (failures > 0) process.exit(1);
   process.exit(0);
 }
@@ -292,11 +309,14 @@ if (!apiKey) {
 }
 
 const dipDocuments = await fetchDipDocuments();
+const currentDocuments = await readCurrentDocuments();
+const previousById = new Map(currentDocuments.map((document) => [document.id, document]));
+const checkedAt = nowIso();
 const normalizedDocuments = dipDocuments
-  .map(normalizeDipDocument)
+  .map((document) => normalizeDipDocument(document, previousById, checkedAt))
   .filter(Boolean)
-  .map(addImportQuality)
-  .filter((document) => document.importQuality.isRelevant)
+  .map(addImportMatch)
+  .filter((document) => document.importMatch.isRelevant)
   .sort((a, b) => new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime())
   .slice(0, maxDocuments);
 
@@ -306,7 +326,6 @@ if (normalizedDocuments.length === 0) {
 }
 
 await ensureFallbackExists();
-const currentDocuments = await readCurrentDocuments();
 const mergedDocuments = dedupeById(
   [...normalizedDocuments, ...currentDocuments.filter((document) => !isDipDocument(document))],
   (document) => document.id
@@ -370,7 +389,7 @@ async function fetchDipPage(resource, params) {
   return response.json();
 }
 
-function normalizeDipDocument(document) {
+function normalizeDipDocument(document, previousById = new Map(), checkedAt = nowIso()) {
   const typ = stringValue(document.typ);
   const title = cleanText(document.titel);
   const abstract = cleanText(document.abstract);
@@ -378,8 +397,18 @@ function normalizeDipDocument(document) {
   if (!document.id || !title) return null;
 
   const documentType = getDocumentType(document);
-  const date = toDateOnly(firstString(document.datum, document.aktualisiert, new Date().toISOString()));
-  const lastActivityDate = firstString(document.aktualisiert, document.datum, new Date().toISOString());
+  // DIP defines Vorgang.datum as the date of its latest associated document;
+  // aktualisiert is a database update and is not necessarily a legislative event.
+  const date = toIsoDate(document.datum);
+  if (!date) {
+    console.warn(`DIP-Datensatz ohne gueltiges Dokumentdatum uebersprungen: ${typ || "Dokument"} ${document.id}`);
+    return null;
+  }
+  const id = `dip-${typ.toLowerCase() || "document"}-${document.id}`;
+  const previousDetection = previousById.get(id)?.detectedAt;
+  const detectedAt = previousDetection && !Number.isNaN(Date.parse(previousDetection)) ? previousDetection : checkedAt;
+  const publishedAt = typ.toLowerCase() === "drucksache" ? date : "";
+  const lastActivityDate = date;
   const source = getSource(document);
   const status = cleanText(firstString(document.beratungsstand, document.vorgangsposition, document.drucksachetyp, "Aktualisiert"));
 
@@ -408,33 +437,46 @@ function normalizeDipDocument(document) {
     700
   );
 
-  return {
-    id: `dip-${typ.toLowerCase() || "document"}-${document.id}`,
+  const record = {
+    id,
     title,
     source,
     sourceType: "Parlament",
     level: "Bund",
     documentType,
+    publishedAt,
+    detectedAt,
+    lastCheckedAt: checkedAt,
+    verificationStatus: getVerificationStatus(true),
+    sourceUpdatedAt: stringValue(document.aktualisiert),
     date,
     lastActivityDate,
     status,
     url: getDipUrl(document),
     summaryShort,
     summaryLong,
+    regulatorySignificanceScore: 0,
+    regulatorySignificanceReason: "",
     relevanceScore: 0,
     relevanceReason: "",
     tags: []
   };
+  record.dataQuality = assessImportQuality(record);
+  if (!publishedAt) {
+    record.dataQuality.issues.push("unknown-publication-date");
+    if (record.dataQuality.status === "clean") record.dataQuality.status = "warning";
+  }
+  return record;
 }
 
 function isRelevantDocument(document) {
   return evaluateImportQuality(document).isRelevant;
 }
 
-function addImportQuality(document) {
+function addImportMatch(document) {
   return {
     ...document,
-    importQuality: evaluateImportQuality(document)
+    importMatch: evaluateImportQuality(document)
   };
 }
 
