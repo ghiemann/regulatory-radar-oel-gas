@@ -77,7 +77,7 @@ export type QualityStatus =
   | "manual-review";
 
 export type ImportQuality = {
-  status: ImportQualityStatus;
+  status: QualityStatus;
   issues: string[];
 };
 
