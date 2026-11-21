@@ -3,6 +3,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  cleanText,
+  normalizeText
+} from "./lib/document-utils.mjs";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 const OUTPUT_PATH = resolve(projectRoot, "public/data/documents.json");
@@ -325,21 +330,7 @@ function hashId(value) {
 }
 
 function normalizeForSearch(value) {
-  return cleanText(value)
-    .toLocaleLowerCase("de-DE")
-    .replaceAll("ä", "ae")
-    .replaceAll("ö", "oe")
-    .replaceAll("ü", "ue")
-    .replaceAll("ß", "ss")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function cleanText(value) {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
+  return normalizeText(value);
 }
 
 function stripCdata(value) {
