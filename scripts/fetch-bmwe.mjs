@@ -4,8 +4,11 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  assessImportQuality,
   cleanText,
-  normalizeText
+  getVerificationStatus,
+  normalizeText,
+  nowIso
 } from "./lib/document-utils.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -240,23 +243,43 @@ function normalizeItem(item) {
   const title = cleanText(item.title);
   const summaryShort = summarize(cleanText(stripHtml(item.description)) || `${title}: ${item.feed.source}`, 260);
 
-  return {
+    const detectedAt = nowIso();
+
+  const document = {
     id: `bmwe-${hashId(item.guid || item.link)}`,
     title,
     source: item.feed.source,
     sourceType: "Ministerium",
     level: "Bund",
     documentType: item.feed.documentType,
+
+    // v2 public metadata
+    publishedAt: date,
+    detectedAt,
+    lastCheckedAt: detectedAt,
+    verificationStatus: getVerificationStatus(true),
+
+    // Legacy fields kept during migration
     date,
     lastActivityDate: `${date}T12:00:00+02:00`,
+
     status: "Veroeffentlicht",
     url: item.link,
     summaryShort,
     summaryLong: summaryShort,
+
+    // Filled later by scoring.ts
+    regulatorySignificanceScore: 0,
+    regulatorySignificanceReason: "",
     relevanceScore: 0,
     relevanceReason: "",
     tags: []
   };
+
+  document.importQuality =
+    assessImportQuality(document);
+
+  return document;
 }
 
 function evaluateImportQuality(document) {
