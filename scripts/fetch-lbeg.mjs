@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { dedupeById, sortByActivityDesc } from "./lib/document-utils.mjs";
+import { assessImportQuality, cleanText as cleanSharedText, dedupeById, getVerificationStatus, nowIso, sortByActivityDesc } from "./lib/document-utils.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
@@ -184,8 +184,9 @@ if (process.argv.includes("--test-filters")) {
       title: "CO2-Speicherung: Antrag auf Untersuchung des Untergrundes nach KSpTG",
       expected: true
     },
-    {
-      title: "Tiefe Geothermie in Niedersachsen: Neue Karten zeigen geeignete Regionen fuer Erdwaermeprojekte",
+    { title: "OVG bestätigt Planfeststellung für Offshore-Erdgasbohrungen", expected: true },
+    { title: "Lagerstättenwasser ausgetreten nach Schaden an Erdgasleitung", expected: true },
+    { title: "Tiefe Geothermie in Niedersachsen: Neue Karten zeigen geeignete Regionen fuer Erdwaermeprojekte",
       expected: true
     },
     {
@@ -207,6 +208,26 @@ if (process.argv.includes("--test-filters")) {
     if (!ok) failures += 1;
     console.log(`${ok ? "OK" : "FAIL"} expected=${testCase.expected ? "KEEP" : "DROP"} actual=${quality.isRelevant ? "KEEP" : "DROP"} score=${quality.score}: ${testCase.title}`);
   }
+
+  const article = `<meta name="date" content="2025-05-12"><h1>Planfeststellung für eine Erdgasleitung</h1>
+    <div><i class="brecht">Bildrechte<span>:</span> Quelle GmbH</i><b>Bildunterschrift bleibt erhalten.</b></div>
+    <p>Die Erdgasleitung &amp; das Verfahren betreffen den Untergrund.</p>
+    <a href="" id="print" class="drucken">Drucken</a>`;
+  const sample = normalizeLbegArticle(article, {
+    url: "https://www.lbeg.niedersachsen.de/example-123.html",
+    source: "LBEG", documentType: "Presseinformation", listTitle: "Erdgasleitung"
+  });
+  const match = evaluateImportQuality(sample);
+  const recordOk = sample.publishedAt === "2025-05-12" && sample.date === sample.publishedAt &&
+    !Number.isNaN(Date.parse(sample.detectedAt)) && sample.detectedAt === sample.lastCheckedAt &&
+    sample.verificationStatus === "primary-source" && sample.dataQuality.status === "clean" &&
+    sample.regulatorySignificanceScore === 0 && sample.regulatorySignificanceReason === "" &&
+    sample.relevanceScore === 0 && sample.relevanceReason === "" && match.isRelevant &&
+    sample.summaryLong.includes("Bildunterschrift bleibt erhalten.") &&
+    sample.summaryLong.includes("Die Erdgasleitung & das Verfahren betreffen den Untergrund.") &&
+    !/Bildrechte|&amp;|<a\b|Drucken/.test(sample.summaryLong);
+  if (!recordOk) failures += 1;
+  console.log(`${recordOk ? "OK" : "FAIL"} LBEG v2 record and source text`);
 
   if (failures > 0) process.exit(1);
   process.exit(0);
@@ -235,7 +256,7 @@ for (const candidate of uniqueCandidates) {
 
     importedDocuments.push({
       ...document,
-      importQuality: quality
+      importMatch: quality
     });
   } catch (error) {
     console.warn(`LBEG-Artikel uebersprungen (${candidate.url}): ${error.message}`);
@@ -248,7 +269,7 @@ if (dryRun) {
   console.log(`LBEG-Dry-Run: ${sortedImportedDocuments.length} relevante Dokumente gefunden.`);
   console.log(`Startdatum: ${startDate || "nicht begrenzt"}`);
   for (const document of sortedImportedDocuments) {
-    console.log(`${document.date} ${document.documentType}: ${document.title} (${document.importQuality.matchedTerms.strong.concat(document.importQuality.matchedTerms.medium).slice(0, 5).join(", ")})`);
+    console.log(`${document.date} ${document.documentType}: ${document.title} (${document.importMatch.matchedTerms.strong.concat(document.importMatch.matchedTerms.medium).slice(0, 5).join(", ")})`);
   }
   process.exit(0);
 }
@@ -304,23 +325,32 @@ function normalizeLbegArticle(html, candidate) {
   const summaryShort = summarize(body || candidate.listTitle, 220);
   const summaryLong = summarize(body || candidate.listTitle, 900);
 
-  return {
+  const detectedAt = nowIso();
+  const document = {
     id: `lbeg-${extractNumericId(canonicalUrl) ?? slugify(title)}`,
     title,
     source: candidate.source,
     sourceType: "Behoerde",
     level: "Niedersachsen",
     documentType: candidate.documentType,
+    publishedAt: date,
+    detectedAt,
+    lastCheckedAt: detectedAt,
+    verificationStatus: getVerificationStatus(true),
     date,
     lastActivityDate: `${date}T12:00:00+02:00`,
     status: "Veroeffentlicht",
     url: canonicalUrl,
     summaryShort,
     summaryLong,
+    regulatorySignificanceScore: 0,
+    regulatorySignificanceReason: "",
     relevanceScore: 0,
     relevanceReason: "",
     tags: []
   };
+  document.dataQuality = assessImportQuality(document);
+  return document;
 }
 
 function evaluateImportQuality(document) {
@@ -378,13 +408,13 @@ function extractMainText(html, title) {
       .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
       .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
       .replace(/<nav\b[\s\S]*?<\/nav>/gi, " ")
-      .replace(/Drucken[\s\S]*$/i, " ")
+      .replace(/<i\b[^>]*class=["\'][^"\']*\bbrecht\b[^"\']*["\'][^>]*>[\s\S]*?<\/i>/gi, " ")
+      .replace(/<a\b[^>]*\bid=["\']print["\'][^>]*>[\s\S]*$/i, " ")
   );
 
   const markerIndex = text.indexOf(title);
   const articleText = markerIndex >= 0 ? text.slice(markerIndex + title.length) : text;
   return cleanText(articleText)
-    .replace(/^Bildrechte:[^.]+\.?\s*/i, "")
     .replace(/^Artikel-Informationen.*$/i, "");
 }
 
@@ -474,9 +504,7 @@ function summarize(value, maxLength) {
 }
 
 function cleanText(value) {
-  return decodeHtml(String(value ?? ""))
-    .replace(/\s+/g, " ")
-    .trim();
+  return cleanSharedText(decodeHtml(String(value ?? "")));
 }
 
 function stripHtml(value) {

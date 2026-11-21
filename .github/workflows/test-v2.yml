@@ -30,6 +30,9 @@ jobs:
       - name: Test BMUKN import filters
         run: npm run test:bmukn-filters
 
+      - name: Test LBEG import filters and records
+        run: npm run test:lbeg-filters
+
       - name: Fetch BMWE test data
         run: npm run fetch:bmwe
         env:
