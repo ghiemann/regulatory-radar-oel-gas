@@ -27,6 +27,9 @@ jobs:
       - name: Test BMWE import filters
         run: npm run test:bmwe-filters
         
+      - name: Test BMUKN import filters
+        run: npm run test:bmukn-filters
+
       - name: Fetch BMWE test data
         run: npm run fetch:bmwe
         env:

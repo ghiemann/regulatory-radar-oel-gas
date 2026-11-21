@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { dedupeById, sortByActivityDesc } from "./lib/document-utils.mjs";
+import { assessImportQuality, cleanText, dedupeById, getVerificationStatus, normalizeText, nowIso, sortByActivityDesc } from "./lib/document-utils.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
@@ -185,6 +185,24 @@ if (process.argv.includes("--test-filters")) {
     console.log(`${ok ? "OK" : "FAIL"} expected=${testCase.expected ? "KEEP" : "DROP"} actual=${quality.isRelevant ? "KEEP" : "DROP"} score=${quality.score}: ${testCase.title}`);
   }
 
+  const sample = normalizeItem({
+    title: "Carbon Management und CO2-Speicherung",
+    description: "CCS und Industrieemissionen",
+    link: "https://example.org/public-record",
+    guid: "example-record",
+    pubDate: "Mon, 12 May 2025 10:00:00 GMT",
+    category: "Meldung",
+    feed: { source: "BMUKN", documentType: "Meldung" }
+  });
+  const match = evaluateImportQuality(sample);
+  const metadataOk = sample.publishedAt === "2025-05-12" && sample.date === sample.publishedAt &&
+    !Number.isNaN(Date.parse(sample.detectedAt)) && sample.lastCheckedAt === sample.detectedAt &&
+    sample.verificationStatus === "primary-source" && sample.dataQuality.status === "clean" &&
+    sample.regulatorySignificanceScore === 0 && sample.regulatorySignificanceReason === "" &&
+    sample.relevanceScore === 0 && sample.relevanceReason === "" && match.isRelevant;
+  if (!metadataOk) failures += 1;
+  console.log(`${metadataOk ? "OK" : "FAIL"} BMUKN v2 record metadata and selection`);
+
   if (failures > 0) process.exit(1);
   process.exit(0);
 }
@@ -201,8 +219,8 @@ for (const feed of BMUKN_FEEDS) {
 const importedDocuments = dedupeById(candidates, (candidate) => candidate.link || candidate.guid)
   .map(normalizeItem)
   .filter((document) => document.date >= startDate)
-  .map((document) => ({ ...document, importQuality: evaluateImportQuality(document) }))
-  .filter((document) => document.importQuality.isRelevant)
+  .map((document) => ({ ...document, importMatch: evaluateImportQuality(document) }))
+  .filter((document) => document.importMatch.isRelevant)
   .sort(sortByActivityDesc)
   .slice(0, maxItems);
 
@@ -211,8 +229,8 @@ if (dryRun) {
   console.log(`Startdatum: ${startDate || "nicht begrenzt"}`);
   for (const document of importedDocuments) {
     const terms = [
-      ...document.importQuality.matchedTerms.strong,
-      ...document.importQuality.matchedTerms.medium
+      ...document.importMatch.matchedTerms.strong,
+      ...document.importMatch.matchedTerms.medium
     ].slice(0, 6).join(", ");
     console.log(`${document.date} ${document.source}: ${document.title} (${terms})`);
   }
@@ -257,23 +275,32 @@ function normalizeItem(item) {
   const summaryShort = summarize(cleanText(stripHtml(item.description)) || `${title}: ${item.feed.source}`, 280);
   const category = cleanText(item.category);
 
-  return {
+  const detectedAt = nowIso();
+  const document = {
     id: `bmukn-${hashId(item.guid || item.link)}`,
     title,
     source: item.feed.source,
     sourceType: "Ministerium",
     level: "Bund",
     documentType: item.feed.documentType,
+    publishedAt: date,
+    detectedAt,
+    lastCheckedAt: detectedAt,
+    verificationStatus: getVerificationStatus(true),
     date,
     lastActivityDate: `${date}T12:00:00+02:00`,
     status: category || "Veroeffentlicht",
     url: item.link,
     summaryShort,
     summaryLong: category ? `${summaryShort} Kategorie: ${category}` : summaryShort,
+    regulatorySignificanceScore: 0,
+    regulatorySignificanceReason: "",
     relevanceScore: 0,
     relevanceReason: "",
     tags: []
   };
+  document.dataQuality = assessImportQuality(document);
+  return document;
 }
 
 function evaluateImportQuality(document) {
@@ -352,21 +379,7 @@ function hashId(value) {
 }
 
 function normalizeForSearch(value) {
-  return cleanText(value)
-    .toLocaleLowerCase("de-DE")
-    .replaceAll("ä", "ae")
-    .replaceAll("ö", "oe")
-    .replaceAll("ü", "ue")
-    .replaceAll("ß", "ss")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function cleanText(value) {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
+  return normalizeText(cleanText(value));
 }
 
 function stripCdata(value) {
