@@ -23,6 +23,9 @@ jobs:
         
       - name: Check shared utility syntax
         run: node --check scripts/lib/document-utils.mjs
+        
+      - name: Test BMWE import filters
+        run: npm run test:bmwe-filters
 
       - name: Build application
         run: npm run build
