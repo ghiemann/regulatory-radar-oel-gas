@@ -276,13 +276,13 @@ function normalizeItem(item) {
     tags: []
   };
 
-  document.importQuality =
+  document.dataQuality =
     assessImportQuality(document);
 
   return document;
 }
 
-function evaluateImportQuality(document) {
+function evaluateimportMatch(document) {
   const haystack = normalizeForSearch([document.title, document.documentType, document.summaryShort, document.summaryLong, document.source].join(" "));
   const compactHaystack = haystack.replace(/\s+/g, "");
   const strongMatches = findTermMatches(haystack, compactHaystack, relevanceTerms.strong);
