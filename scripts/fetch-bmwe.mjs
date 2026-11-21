@@ -6,9 +6,11 @@ import { fileURLToPath } from "node:url";
 import {
   assessImportQuality,
   cleanText,
+  dedupeById,
   getVerificationStatus,
   normalizeText,
-  nowIso
+  nowIso,
+  sortByActivityDesc
 } from "./lib/document-utils.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -330,16 +332,6 @@ async function readCurrentDocuments() {
 async function writeJson(path, data) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(data, null, 2)}\n`, "utf8");
-}
-
-function dedupeById(items, getId) {
-  const result = new Map();
-  for (const item of items) result.set(getId(item), item);
-  return [...result.values()];
-}
-
-function sortByActivityDesc(a, b) {
-  return new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime();
 }
 
 function toDateOnly(value) {

@@ -3,6 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
 
+import { dedupeById, sortByActivityDesc } from "./lib/document-utils.mjs";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 const OUTPUT_PATH = resolve(projectRoot, "public/data/documents.json");
@@ -494,16 +496,6 @@ function summarize(value, maxLength) {
 
 function cleanText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
-}
-
-function dedupeById(items, getId) {
-  const result = new Map();
-  for (const item of items) result.set(getId(item), item);
-  return [...result.values()];
-}
-
-function sortByActivityDesc(a, b) {
-  return new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime();
 }
 
 function delay(ms) {

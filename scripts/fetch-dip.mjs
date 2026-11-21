@@ -2,6 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { dedupeById } from "./lib/document-utils.mjs";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 
@@ -584,14 +586,6 @@ function stringValue(value) {
   if (Array.isArray(value)) return value.map(stringValue).filter(Boolean).join(", ");
   if (typeof value === "object") return stringValue(value.name ?? value.bezeichnung ?? value.titel ?? value.id);
   return String(value);
-}
-
-function dedupeById(items, getId) {
-  const result = new Map();
-  for (const item of items) {
-    result.set(getId(item), item);
-  }
-  return [...result.values()];
 }
 
 async function readCurrentDocuments() {

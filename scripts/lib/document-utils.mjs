@@ -269,3 +269,17 @@ export function assessImportQuality(document) {
     issues
   };
 }
+
+/** Keep the last item for each key, retaining the key's first position.
+ * Unlike deduplicateDocuments, this intentionally also groups missing keys.
+ */
+export function dedupeById(items, getId) {
+  const result = new Map();
+  for (const item of items) result.set(getId(item), item);
+  return [...result.values()];
+}
+
+/** Comparator matching the importers' existing activity-date ordering. */
+export function sortByActivityDesc(a, b) {
+  return new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime();
+}

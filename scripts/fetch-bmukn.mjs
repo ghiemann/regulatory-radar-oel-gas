@@ -3,6 +3,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { dedupeById, sortByActivityDesc } from "./lib/document-utils.mjs";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 const OUTPUT_PATH = resolve(projectRoot, "public/data/documents.json");
@@ -337,16 +339,6 @@ async function readCurrentDocuments() {
 async function writeJson(path, data) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(data, null, 2)}\n`, "utf8");
-}
-
-function dedupeById(items, getId) {
-  const result = new Map();
-  for (const item of items) result.set(getId(item), item);
-  return [...result.values()];
-}
-
-function sortByActivityDesc(a, b) {
-  return new Date(b.lastActivityDate).getTime() - new Date(a.lastActivityDate).getTime();
 }
 
 function toDateOnly(value) {
