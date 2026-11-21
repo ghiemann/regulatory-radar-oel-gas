@@ -282,7 +282,7 @@ function normalizeItem(item) {
   return document;
 }
 
-function evaluateimportQuality(document) {
+function evaluateImportQuality(document) {
   const haystack = normalizeForSearch([document.title, document.documentType, document.summaryShort, document.summaryLong, document.source].join(" "));
   const compactHaystack = haystack.replace(/\s+/g, "");
   const strongMatches = findTermMatches(haystack, compactHaystack, relevanceTerms.strong);
